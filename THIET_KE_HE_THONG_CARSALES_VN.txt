@@ -1,0 +1,1128 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                     TÀI LIỆU THIẾT KẾ HỆ THỐNG CAR SALES                       ║
+║                          Báo cáo Kỹ Thuật & Thiết Kế                          ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I. THÔNG TIN CHUNG DỰ ÁN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tên Dự Án:               CarSales.Web - Hệ Thống Bán Xe Ô Tô Trực Tuyến
+Mô Tả:                   Nền tảng web cho phép khách hàng tìm kiếm, mua bán xe ô tô
+Công Nghệ Chính:         .NET 10, ASP.NET Core
+Framework:               Razor Pages + MVC Controllers
+Cơ Sở Dữ Liệu:          SQL Server
+Ngôn Ngữ Lập Trình:      C#
+Phiên Bản Báo Cáo:       1.0
+Ngày Tạo:               07/04/2025
+
+Đối Tượng Sử Dụng:
+  • Khách hàng - Tìm kiếm và mua xe
+  • Nhân viên - Xử lý đơn mua hàng
+  • Quản trị viên - Quản lý hệ thống
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+II. KIẾN TRÚC HỆ THỐNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2.1 KIẾN TRÚC TỔNG QUÁT
+
+Hệ thống CarSales.Web được thiết kế theo kiến trúc phân lớp (Layered Architecture):
+
+    ┌──────────────────────────────────────────────────────┐
+    │     LỚP TRÌNH BÀY (Presentation Layer)               │
+    │  - Giao diện Razor Pages                             │
+    │  - API Controllers                                   │
+    │  - Các thành phần UI                                 │
+    ├──────────────────────────────────────────────────────┤
+    │     LỚP LOGIC KINH DOANH (Business Logic Layer)      │
+    │  - Controllers                                       │
+    │  - Xử lý yêu cầu người dùng                          │
+    │  - Các API Endpoints                                 │
+    ├──────────────────────────────────────────────────────┤
+    │     LỚP TRUY CẬP DỮ LIỆU (Data Access Layer)         │
+    │  - Entity Framework Core                             │
+    │  - DbContext                                         │
+    │  - Các Migration                                     │
+    ├──────────────────────────────────────────────────────┤
+    │     LỚP CƠ SỞ DỮ LIỆU (Database Layer)               │
+    │  - SQL Server                                        │
+    └──────────────────────────────────────────────────────┘
+
+
+2.2 CẤU TRÚC THƯ MỤC DỰ ÁN
+
+CarSales.Web/
+├── Areas/
+│   ├── Admin/                           # Khu vực quản trị viên
+│   │   ├── Controllers/
+│   │   │   ├── DashboardController.cs   # Bảng điều khiển quản lý
+│   │   │   ├── CarsManagementController.cs
+│   │   │   └── UsersManagementController.cs
+│   │   └── Views/                       # Giao diện quản lý
+│   │
+│   └── Staff/                           # Khu vực nhân viên
+│       ├── Controllers/
+│       │   ├── DashboardController.cs
+│       │   ├── PurchaseRequestsController.cs
+│       │   └── DepositsController.cs
+│       └── Views/                       # Giao diện nhân viên
+│
+├── Controllers/                         # Controllers chính
+│   ├── HomeController.cs                # Trang chủ & Duyệt xe
+│   ├── AccountController.cs             # Xác thực & Tài khoản
+│   ├── CarsController.cs                # Chi tiết xe
+│   ├── PagesController.cs               # Trang nội dung
+│   └── API/                             # REST API Endpoints
+│       ├── CarsApiController.cs
+│       ├── BrandsApiController.cs
+│       ├── AuthApiController.cs
+│       ├── DepositsApiController.cs
+│       └── PurchaseRequestsApiController.cs
+│
+├── Models/                              # Mô hình dữ liệu
+│   ├── User.cs                          # Người dùng
+│   ├── Role.cs                          # Vai trò (Admin/Staff/Khách)
+│   ├── Car.cs                           # Thông tin xe
+│   ├── Brand.cs                         # Hãng xe
+│   ├── CarType.cs                       # Loại xe
+│   ├── CarImage.cs                      # Hình ảnh xe
+│   ├── Favorite.cs                      # Xe yêu thích
+│   ├── PurchaseRequest.cs               # Yêu cầu mua
+│   └── Deposit.cs                       # Tiền đặt cọc
+│
+├── Data/                                # Lớp truy cập dữ liệu
+│   ├── ApplicationDbContext.cs          # DbContext chính
+│   └── DbInitializer.cs                 # Khởi tạo dữ liệu
+│
+├── ViewModels/                          # View Models (DTOs)
+│   ├── HomeIndexViewModel.cs
+│   ├── CarDetailsViewModel.cs
+│   ├── LoginViewModel.cs
+│   └── *Dtos.cs                         # Data Transfer Objects
+│
+├── Views/                               # Giao diện Razor
+│   ├── Shared/
+│   │   ├── _Layout.cshtml               # Layout chính
+│   │   ├── _DashboardLayout.cshtml      # Layout bảng điều khiển
+│   │   └── _*.cshtml                    # Partial Views
+│   ├── Home/
+│   ├── Cars/
+│   ├── Account/
+│   └── Pages/
+│
+├── Attributes/
+│   └── RoleAuthorizeAttribute.cs        # Xác thực phân quyền
+│
+├── Helpers/
+│   ├── FileHelper.cs                    # Xử lý file
+│   └── PasswordHelper.cs                # Mã hóa mật khẩu
+│
+├── Migrations/                          # Database Migrations
+│   ├── 20260320144324_InitialCreate.cs
+│   └── 20260407164003_SetupDatabase.cs
+│
+├── wwwroot/                             # Tài nguyên tĩnh
+│   ├── css/
+│   ├── js/
+│   ├── images/
+│   └── uploads/cars/                    # Thư mục upload hình xe
+│
+├── Program.cs                           # Cấu hình khởi động
+└── CarSales.Web.csproj                  # Cấu hình dự án
+
+
+2.3 CÔNG NGHỆ SỬ DỤNG
+
+Framework:              .NET 10
+Web Framework:          ASP.NET Core (Razor Pages + MVC)
+ORM Cơ Sở Dữ Liệu:     Entity Framework Core 10.0.5
+Cơ Sở Dữ Liệu:        SQL Server
+Quản Lý Session:       Distributed Memory Cache
+Tài Liệu API:         Swagger (Swashbuckle.AspNetCore 10.1.5)
+Xác Thực:             Session-based + Custom Authorization
+
+
+2.4 MỐI TƯƠNG TÁC GIỮA CÁC THÀNH PHẦN
+
+Người Dùng → Giao Diện (Views) → Controllers → Logic (Services) 
+                                          ↓
+                              Entity Framework Core
+                                          ↓
+                                  SQL Server Database
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+III. CÁC CHỨC NĂNG CHÍNH VÀ THÀNH PHẦN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3.1 HỆ THỐNG XÁC THỰC & QUẢN LÝ NGƯỜI DÙNG
+
+Các Thành Phần:
+  • AccountController.cs
+  • AuthApiController.cs
+  • RoleAuthorizeAttribute.cs
+  • User.cs, Role.cs
+
+Các Chức Năng:
+  ✓ Đăng Ký Tài Khoản
+    - Xác nhận email hợp lệ
+    - Mã hóa mật khẩu
+    - Gán vai trò (Admin, Nhân viên, Khách hàng)
+    - Tạo hồ sơ người dùng
+
+  ✓ Đăng Nhập
+    - Xác thực qua email
+    - Quản lý session (30 phút hết hạn)
+    - Điều hướng theo vai trò
+
+  ✓ Quản Lý Hồ Sơ
+    - Cập nhật thông tin cá nhân
+    - Tải lên ảnh đại diện
+    - Cập nhật liên hệ
+
+  ✓ Phân Quyền Dựa Trên Vai Trò (RBAC)
+    - 3 loại vai trò: Admin, Nhân viên, Khách hàng
+    - Kiểm tra phân quyền tự động
+    - Cấu trúc vai trò: Admin > Nhân viên > Khách hàng
+
+Quy Trình:
+  1. Người dùng đăng ký với email và mật khẩu
+  2. Mật khẩu được mã hóa trước lưu trữ
+  3. Đăng nhập bằng email/mật khẩu
+  4. Session lưu trữ UserId và Role
+  5. Mỗi yêu cầu được kiểm tra phân quyền
+  6. Session hết hạn sau 30 phút không hoạt động
+
+
+3.2 DANH SÁCH & DUYỆT XE
+
+Các Thành Phần:
+  • HomeController.cs
+  • CarsController.cs
+  • CarsApiController.cs
+  • Car.cs, Brand.cs, CarType.cs
+
+Các Chức Năng:
+  ✓ Liệt Kê Xe
+    - Hiển thị tất cả xe có sẵn
+    - Lọc theo loại xe
+    - Sắp xếp theo nổi bật & ngày tạo
+    - Hỗ trợ phân trang
+    - Hiển thị ảnh xe
+
+  ✓ Tìm Kiếm & Khám Phá
+    - Lọc theo hãng xe
+    - Lọc theo loại xe
+    - Lọc theo khoảng giá
+    - Lọc theo năm sản xuất
+    - Lọc theo loại nhiên liệu
+    - Tìm kiếm theo tên xe
+
+  ✓ Trang Chi Tiết Xe
+    - Thông số kỹ thuật đầy đủ
+    - Nhiều hình ảnh xe
+    - Thông tin giá và tình trạng
+    - Gợi ý xe liên quan
+
+  ✓ Thông Tin Xe Bao Gồm
+    - Tên xe, Hãng, Loại xe
+    - Giá bán, Năm sản xuất
+    - Số km đã chạy
+    - Loại nhiên liệu, Hộp số
+    - Số ghế, Màu sắc
+    - Động cơ, Xuất xứ
+    - Mô tả chi tiết
+
+Quy Trình:
+  1. Khách hàng truy cập Trang Chủ
+  2. Chọn loại xe để lọc
+  3. Xem danh sách xe được sắp xếp
+  4. Nhấp vào xe để xem chi tiết
+  5. Xem các thông số kỹ thuật và ảnh
+  6. Có thể thêm vào yêu thích hoặc mua
+
+
+3.3 XE YÊU THÍCH & WISHLIST
+
+Các Thành Phần:
+  • Favorite.cs (Model)
+  • HomeController.cs
+  • CarsApiController.cs
+
+Các Chức Năng:
+  ✓ Thêm/Xóa Xe Yêu Thích
+    - Lưu xe vào danh sách yêu thích
+    - Truy cập nhanh từ hồ sơ
+    - Hiển thị số lượng yêu thích
+
+  ✓ Quản Lý Yêu Thích
+    - Xem tất cả xe yêu thích
+    - Xóa từ danh sách
+    - Theo dõi ngày/giờ thêm
+
+Quy Trình:
+  1. Khách hàng đã đăng nhập xem chi tiết xe
+  2. Nhấp "Thêm vào Yêu Thích"
+  3. Xe được lưu vào bảng Favorite
+  4. Có thể xem tất cả yêu thích từ hồ sơ
+
+
+3.4 HỆ THỐNG YÊU CẦU MUA XE
+
+Các Thành Phần:
+  • PurchaseRequestsController.cs
+  • PurchaseRequestsApiController.cs
+  • PurchaseRequest.cs
+
+Các Chức Năng:
+  ✓ Gửi Yêu Cầu Mua
+    - Khách hàng gửi yêu cầu mua xe
+    - Cung cấp thông tin liên hệ
+    - Để lại tin nhắn (tùy chọn)
+    - Tự động liên kết với khách hàng và xe
+
+  ✓ Quản Lý Yêu Cầu (Nhân Viên)
+    - Xem tất cả yêu cầu
+    - Lọc theo trạng thái
+    - Gán cho nhân viên cụ thể
+    - Cập nhật trạng thái
+    - Ghi chú nội bộ
+
+  ✓ Quy Trình Trạng Thái
+    - Mới: Yêu cầu vừa tạo
+    - Đang xử lý: Nhân viên đang xử lý
+    - Hoàn thành: Mua hàng hoàn tất
+    - Từ chối: Yêu cầu bị từ chối
+
+  ✓ Thông Tin Yêu Cầu
+    - Họ tên, Email, Số điện thoại
+    - Xe được yêu cầu
+    - Tin nhắn yêu cầu
+    - Thời gian tạo
+    - Nhân viên được gán
+    - Theo dõi trạng thái
+
+Quy Trình:
+  1. Khách hàng xem chi tiết xe
+  2. Nhấp "Yêu Cầu Mua"
+  3. Điền biểu mẫu yêu cầu
+  4. Yêu cầu được lưu vào cơ sở dữ liệu
+  5. Nhân viên nhận thông báo
+  6. Nhân viên cập nhật trạng thái
+  7. Khách hàng theo dõi tiến độ
+
+
+3.5 HỆ THỐNG TIỀN ĐẶT CỌC
+
+Các Thành Phần:
+  • DepositsController.cs
+  • DepositsApiController.cs
+  • Deposit.cs
+
+Các Chức Năng:
+  ✓ Quản Lý Đặt Cọc
+    - Ghi nhận giao dịch tiền
+    - Theo dõi số tiền
+    - Liên kết với yêu cầu mua
+    - Nhân viên xử lý và xác nhận
+
+  ✓ Theo Dõi Tiền Đặt Cọc
+    - Khách hàng xem trạng thái
+    - Nhân viên quản lý đợi xử lý
+    - Lịch sử giao dịch
+    - Kiểm tra số tiền
+
+  ✓ Thông Tin Tiền Đặt Cọc
+    - Số tiền (Decimal 18,2)
+    - Yêu cầu mua liên quan
+    - Khách hàng liên quan
+    - Nhân viên được gán
+    - Ngày/giờ tiền đặt cọc
+    - Trạng thái
+
+Quy Trình:
+  1. Khách hàng quyết định mua
+  2. Gửi giao dịch tiền đặt cọc
+  3. Số tiền được ghi nhận
+  4. Nhân viên nhận để xử lý
+  5. Nhân viên xác nhận
+  6. Khách hàng nhận thông báo
+
+
+3.6 HỆ THỐNG QUẢN TRỊ VIÊN
+
+Các Thành Phần:
+  • Areas/Admin/Controllers/
+  • DashboardController.cs
+  • CarsManagementController.cs
+  • UsersManagementController.cs
+
+Các Chức Năng:
+  ✓ Bảng Điều Khiển Quản Lý
+    - Tổng quan hệ thống
+    - Thống kê người dùng, xe
+    - Hoạt động gần đây
+    - Truy cập nhanh các phần
+
+  ✓ Quản Lý Xe
+    - Thêm xe mới
+    - Chỉnh sửa thông tin xe
+    - Xóa/Vô hiệu hóa xe
+    - Tải lên hình ảnh
+    - Đặt trạng thái nổi bật
+    - Quản lý trạng thái xe
+
+  ✓ Quản Lý Người Dùng
+    - Xem tất cả người dùng
+    - Sửa vai trò
+    - Kích hoạt/Vô hiệu hóa
+    - Đặt lại mật khẩu
+
+Quy Trình:
+  1. Quản trị viên đăng nhập
+  2. Truy cập bảng điều khiển
+  3. Quản lý xe, người dùng, nội dung
+  4. Thay đổi được áp dụng ngay
+
+
+3.7 HỆ THỐNG NHÂN VIÊN
+
+Các Thành Phần:
+  • Areas/Staff/Controllers/
+  • DashboardController.cs
+  • PurchaseRequestsController.cs
+  • DepositsController.cs
+
+Các Chức Năng:
+  ✓ Bảng Điều Khiển Nhân Viên
+    - Tổng quan công việc được gán
+    - Số yêu cầu chờ xử lý
+    - Hoạt động gần đây
+
+  ✓ Quản Lý Yêu Cầu Mua
+    - Xem yêu cầu được gán
+    - Cập nhật trạng thái
+    - Giao tiếp với khách hàng
+    - Theo dõi chỉ số chuyển đổi
+
+  ✓ Xử Lý Tiền Đặt Cọc
+    - Xem tiền chờ xử lý
+    - Xác nhận nhận tiền
+    - Theo dõi trạng thái
+    - Tạo báo cáo
+
+Quy Trình:
+  1. Nhân viên đăng nhập
+  2. Xem bảng điều khiển
+  3. Xem yêu cầu được gán
+  4. Xử lý tiền đặt cọc
+  5. Cập nhật trạng thái
+
+
+3.8 CÁC ENDPOINTS API
+
+1. BrandsApiController.cs
+   GET    /api/brands            - Lấy tất cả hãng xe
+   POST   /api/brands            - Tạo hãng xe mới
+   GET    /api/brands/{id}       - Lấy hãng xe theo ID
+   PUT    /api/brands/{id}       - Cập nhật hãng xe
+   DELETE /api/brands/{id}       - Xóa hãng xe
+
+2. CarsApiController.cs
+   GET    /api/cars              - Lấy tất cả xe (có lọc)
+   POST   /api/cars              - Tạo xe mới
+   GET    /api/cars/{id}         - Lấy xe theo ID
+   PUT    /api/cars/{id}         - Cập nhật xe
+   DELETE /api/cars/{id}         - Xóa xe
+
+3. AuthApiController.cs
+   POST   /api/auth/login        - Đăng nhập người dùng
+   POST   /api/auth/register     - Đăng ký người dùng
+   POST   /api/auth/logout       - Đăng xuất
+
+4. PurchaseRequestsApiController.cs
+   GET    /api/purchaserequests  - Lấy yêu cầu mua
+   POST   /api/purchaserequests  - Tạo yêu cầu mới
+   GET    /api/purchaserequests/{id} - Lấy theo ID
+   PUT    /api/purchaserequests/{id} - Cập nhật trạng thái
+
+5. DepositsApiController.cs
+   GET    /api/deposits          - Lấy danh sách tiền đặt cọc
+   POST   /api/deposits          - Ghi nhận tiền mới
+   GET    /api/deposits/{id}     - Lấy theo ID
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IV. THIẾT KẾ GIAO DIỆN VÀ TRẢI NGHIỆM NGƯỜI DÙNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4.1 CẤU TRÚC LAYOUT
+
+Layout Chính (_Layout.cshtml):
+  Mục Đích: Cung cấp cấu trúc trang nhất quán cho tất cả trang công khai
+  
+  Các Thành Phần:
+    • Thanh Điều Hướng
+      - Logo/Liên kết Trang Chủ
+      - Liên kết Duyệt Xe
+      - Liên kết Xe Yêu Thích
+      - Liên kết Đăng Nhập/Đăng Xuất
+      - Dropdown Hồ Sơ Người Dùng
+
+    • Khu Vực Nội Dung Chính
+      - Nội dung trang cụ thể (@RenderBody())
+
+    • Thanh Bên (Tùy Chọn)
+      - Tìm kiếm/Lọc
+      - Liên kết nhanh
+      - Lịch sử xem
+
+    • Chân Trang
+      - Bản quyền
+      - Liên kết hữu ích
+      - Thông tin liên hệ
+
+Layout Bảng Điều Khiển (_DashboardLayout.cshtml):
+  Mục Đích: Cung cấp layout cho các trang bảng điều khiển Admin/Nhân viên
+  
+  Các Thành Phần:
+    • Điều Hướng Thanh Bên
+      - Liên kết Bảng Điều Khiển
+      - Menu items theo vai trò
+      - Tùy chọn Hồ Sơ/Đăng Xuất
+
+    • Thanh Trên/Header
+      - Tin chào mừng
+      - Tên người dùng
+      - Thông báo nhanh
+
+    • Khu Vực Nội Dung Chính
+      - Nội dung bảng điều khiển
+
+    • Chân Trang
+      - Thông tin hệ thống
+
+
+4.2 LUỒNG TRANG & HÀNH TRÌNH NGƯỜI DÙNG
+
+Luồng Người Dùng Công Khai:
+  Trang Chủ
+    ↓
+  Duyệt/Tìm Kiếm Xe
+    ↓
+  Xem Chi Tiết Xe
+    ↓
+  [Tùy Chọn] Thêm vào Yêu Thích
+    ↓
+  [Tùy Chọn] Đăng Nhập
+    ↓
+  Gửi Yêu Cầu Mua
+    ↓
+  Xem Trạng Thái Yêu Cầu
+    ↓
+  Xử Lý Tiền Đặt Cọc
+
+
+Luồng Khách Hàng Đã Xác Thực:
+  Đăng Nhập
+    ↓
+  Bảng Điều Khiển/Hồ Sơ
+    ↓
+  Duyệt Xe
+    ↓
+  Xem Xe Yêu Thích
+    ↓
+  Gửi Yêu Cầu Mua
+    ↓
+  Theo Dõi Trạng Thái
+    ↓
+  Xử Lý Tiền Đặt Cọc
+    ↓
+  Hoàn Thành Mua
+
+
+Luồng Quản Trị Viên:
+  Đăng Nhập Quản Lý
+    ↓
+  Bảng Điều Khiển Quản Lý
+    ↓
+  Quản Lý Xe
+    ↓
+  Quản Lý Người Dùng
+    ↓
+  Xem Thống Kê Hệ Thống
+    ↓
+  Quản Lý Nội Dung
+
+
+Luồng Nhân Viên:
+  Đăng Nhập Nhân Viên
+    ↓
+  Bảng Điều Khiển Nhân Viên
+    ↓
+  Xem Yêu Cầu Mua
+    ↓
+  Cập Nhật Trạng Thái
+    ↓
+  Xử Lý Tiền Đặt Cọc
+    ↓
+  Xem Báo Cáo
+
+
+4.3 CÁC THÀNH PHẦN GIAO DIỆN CHÍNH
+
+Trang Chủ:
+  • Phần Hero
+    - Banner hành động rõ ràng
+    - Hộp tìm kiếm xe
+    - Ảnh nền/Slider
+
+  • Trưng Bày Xe Nổi Bật
+    - Hiển thị lưới xe nổi bật
+    - Ảnh, tên, giá xe
+    - Nút "Xem Chi Tiết"
+
+  • Điều Hướng Lọc Loại Xe
+    - Tab lọc ngang hoặc dọc
+    - Hiển thị danh mục loại xe
+    - Lọc thời gian thực
+
+  • Thẻ Liệt Kê Xe
+    - Hiển thị tóm tắt xe
+    - Ảnh thu nhỏ
+    - Tên, loại, giá xe
+    - Nút "Xem Chi Tiết" và "Thêm Yêu Thích"
+    - Biểu tượng trái tim yêu thích
+
+  • Phân Trang
+    - Điều hướng giữa các trang
+    - Hiển thị tổng số
+
+Trang Chi Tiết Xe:
+  • Thư Viện Ảnh
+    - Ảnh chính lớn
+    - Carousel hình ảnh thêm
+    - Khả năng phóng to ảnh
+
+  • Bảng Thông Tin Xe
+    - Tên xe và thông số cơ bản
+    - Hiển thị giá
+    - Nút "Yêu Cầu Mua"
+    - Nút "Thêm Yêu Thích"
+
+  • Thông Số Chi Tiết
+    - Bố cục hai cột
+    - Hãng, Loại, Năm
+    - Số km, Loại nhiên liệu, Hộp số
+    - Động cơ, Ghế, Màu, Xuất xứ
+    - Mô tả đầy đủ
+
+  • Phần Xe Liên Quan
+    - Xe tương tự được gợi ý
+    - Liên kết duyệt nhanh
+
+  • Phần Liên Hệ/Yêu Cầu
+    - Biểu mẫu yêu cầu mua nhanh
+    - Thông tin liên hệ nhân viên
+    - Hộp tin nhắn yêu cầu
+
+Trang Bảng Điều Khiển:
+  • Thẻ Thống Kê
+    - Chỉ số chính (Tổng người dùng, xe, etc.)
+    - Thẻ màu
+    - Hiển thị số nhanh
+
+  • Bảng Dữ Liệu
+    - Cột có thể sắp xếp
+    - Phân trang
+    - Nút hành động (Sửa, Xóa, Xem)
+    - Hộp kiểm lựa chọn hàng loạt
+
+  • Biểu Mẫu
+    - Xác nhận đầu vào
+    - Chỉ báo trường bắt buộc
+    - Nút Gửi/Hủy
+    - Thông báo lỗi
+
+  • Huy Hiệu Trạng Thái
+    - Biểu tượng trạng thái màu
+    - Nhãn trạng thái rõ ràng
+
+
+4.4 NGUYÊN TẮC THIẾT KẾ RESPONSIVE
+
+Phương Pháp Mobile-First:
+  • Điều Hướng
+    - Menu hamburger trên thiết bị di động
+    - Menu thả xuống responsive
+    - Nút kích hoạt bằng cảm ứng (44x44px tối thiểu)
+
+  • Liệt Kê Xe
+    - 1 cột trên di động
+    - 2 cột trên tablet
+    - 3+ cột trên máy tính
+    - Ảnh co dãn thích hợp
+
+  • Biểu Mẫu
+    - Trường đầu vào toàn chiều rộng trên di động
+    - Bố cục biểu mẫu tối ưu hóa
+    - Nút dễ nhấp
+
+  • Kiểu Chữ
+    - Kích thước phông responsive
+    - Khoảng cách dòng thích hợp
+    - Dễ đọc trên tất cả thiết bị
+
+
+4.5 MÀU SẮC & CẤP BẬC HIỂN THỊ
+
+Màu Thương Hiệu:
+  • Màu Chính: Dùng cho CTA (Mua, Yêu Thích)
+  • Màu Phụ: Dùng cho nhấn mạnh
+  • Màu Trung Tính: Dùng cho nền và viền
+  • Màu Trạng Thái:
+    - Xanh lục: Có sẵn, Thành công, Hoạt động
+    - Vàng/Cam: Chờ xử lý, Cảnh báo
+    - Đỏ: Đã bán, Lỗi, Nguy hiểm
+    - Xám: Không hoạt động, Bị tắt
+
+
+4.6 PHẢN HỒI NGƯỜI DÙNG & TƯƠNG TÁC
+
+Cơ Chế Phản Hồi:
+  • Thông Báo Thành Công
+    - Thông báo toast xanh
+    - "Xe được thêm vào yêu thích"
+    - "Yêu cầu mua được gửi"
+
+  • Thông Báo Lỗi
+    - Thông báo toast đỏ
+    - Làm nổi bật lỗi xác nhận
+    - Mô tả lỗi hữu ích
+
+  • Trạng Thái Tải
+    - Vòng xoay tải
+    - Màn hình skeleton
+    - Nút bị vô hiệu hóa khi gửi
+
+  • Hộp Xác Nhận
+    - Xác nhận xóa
+    - Xác nhận thay đổi trạng thái
+
+  • Hết Hạn Session
+    - Cảnh báo trước khi session hết
+    - Điều hướng tự động đến đăng nhập
+
+
+4.7 CÁC TÍNH NĂNG TIẾP CẬN
+
+  • HTML Ngữ Nghĩa
+    - Cấp bậc tiêu đề phù hợp
+    - Nhãn biểu mẫu liên kết với đầu vào
+    - Nhãn ARIA cho trình đọc màn hình
+
+  • Điều Hướng Bàn Phím
+    - Thứ tự tab cho trường biểu mẫu
+    - Nút tiếp cận được bằng bàn phím
+    - Biểu tượng lấy nét
+
+  • Độ Tương Phản Màu
+    - Tuân thủ WCAG AA
+    - Tỷ lệ tương phản đủ
+
+  • Văn Bản Alt
+    - Văn bản alt mô tả cho ảnh xe
+    - Mô tả hình ảnh khi cần
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+V. SCHEMA CƠ SỞ DỮ LIỆU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5.1 BIỂU ĐỒ QUAN HỆ THỰC THỂ (ERM)
+
+User (N) ──── (1) Role
+  ├─ (1) ──── (N) Favorite
+  ├─ (1) ──── (N) PurchaseRequest
+  └─ (1) ──── (N) Deposit
+
+Car (1) ──── (N) CarImage
+Car (N) ──── (1) Brand
+Car (N) ──── (1) CarType
+Car (1) ──── (N) Favorite
+Car (1) ──── (N) PurchaseRequest
+
+PurchaseRequest (N) ──── (1) User
+PurchaseRequest (N) ──── (1) Staff (User)
+PurchaseRequest (N) ──── (1) Car
+
+Deposit (N) ──── (1) User
+Deposit (N) ──── (1) Staff (User)
+
+
+5.2 CÁC BẢNG CHÍNH
+
+Roles (Vai Trò)
+  - RoleId (Khóa Chính)
+  - RoleName (Admin, Nhân viên, Khách hàng)
+
+Users (Người Dùng)
+  - UserId (Khóa Chính)
+  - FullName, Email, PasswordHash
+  - Phone, Address, Avatar
+  - RoleId (Khóa Ngoài → Roles)
+  - IsActive, CreatedAt
+
+Cars (Xe)
+  - CarId (Khóa Chính)
+  - CarName, Price, Year
+  - BrandId (Khóa Ngoài → Brands)
+  - CarTypeId (Khóa Ngoài → CarTypes)
+  - Mileage, FuelType, Transmission
+  - Seats, Color, Engine, Origin
+  - Description, Status
+  - IsFeatured, CreatedAt
+
+Brands (Hãng Xe)
+  - BrandId (Khóa Chính)
+  - BrandName
+
+CarTypes (Loại Xe)
+  - CarTypeId (Khóa Chính)
+  - TypeName (Sedan, SUV, Xe Tải, etc.)
+
+CarImages (Hình Ảnh Xe)
+  - ImageId (Khóa Chính)
+  - CarId (Khóa Ngoài → Cars)
+  - ImagePath, CreatedAt
+
+Favorites (Xe Yêu Thích)
+  - FavoriteId (Khóa Chính)
+  - UserId (Khóa Ngoài → Users)
+  - CarId (Khóa Ngoài → Cars)
+  - CreatedAt
+
+PurchaseRequests (Yêu Cầu Mua)
+  - RequestId (Khóa Chính)
+  - UserId (Khóa Ngoài → Users)
+  - CarId (Khóa Ngoài → Cars)
+  - StaffId (Khóa Ngoài → Users)
+  - FullName, Email, Phone, Message
+  - Status, CreatedAt, UpdatedAt
+
+Deposits (Tiền Đặt Cọc)
+  - DepositId (Khóa Chính)
+  - UserId (Khóa Ngoài → Users)
+  - StaffId (Khóa Ngoài → Users)
+  - DepositAmount (Decimal 18,2)
+  - Status, CreatedAt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VI. CÁC TÍNH NĂNG BẢO MẬT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6.1 XÁC THỰC & PHÂN QUYỀN
+
+  • Xác Thực Dựa Trên Session
+    - Hết hạn không hoạt động 30 phút
+    - Cookies HttpOnly (ngăn truy cập JavaScript)
+    - Cờ Secure cho truyền HTTPS
+
+  • Bảo Mật Mật Khẩu
+    - Mã hóa mật khẩu bằng PasswordHelper
+    - Không bao giờ lưu ở định dạng plain text
+    - Muối được áp dụng khi mã hóa
+
+  • Phân Quyền Dựa Trên Vai Trò
+    - Custom RoleAuthorizeAttribute
+    - Xác nhận vai trò trên mỗi yêu cầu bảo vệ
+    - Ba cấp độ vai trò: Admin, Nhân viên, Khách hàng
+
+  • Xác Nhận Session
+    - UserId và Role được lưu trong session
+    - Được kiểm tra trước khi cấp quyền truy cập
+    - Sessions không hợp lệ điều hướng đến đăng nhập
+
+
+6.2 BẢO VỆ DỮ LIỆU
+
+  • Ràng Buộc Khóa Ngoài
+    - Ngăn chặn dữ liệu mồ côi
+    - Hành vi OnDelete: Restrict (ngăn chặn mất dữ liệu)
+
+  • Xác Nhận Đầu Vào
+    - Xác nhận trường bắt buộc
+    - Xác nhận định dạng email
+    - Xác nhận số điện thoại
+    - Ràng buộc độ dài chuỗi
+
+  • Ngăn Chặn SQL Injection
+    - Truy vấn tham số hóa Entity Framework Core
+    - Không xây dựng SQL động
+
+
+6.3 BẢO MẬT API
+
+  • Headers CORS
+    - Kiểm soát yêu cầu cross-origin
+
+  • Tài Liệu Swagger
+    - Chỉ có sẵn ở chế độ phát triển
+
+  • Quản Lý Session Token
+    - Xác nhận ID session
+    - Bảo vệ CSRF thông qua trạng thái session
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VII. CẤU HÌNH TRIỂN KHAI & KHỞI ĐỘNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+7.1 KHỞI ĐỘNG ỨNG DỤNG (Program.cs)
+
+Các Dịch Vụ Được Cấu Hình:
+  • Logging (Ghi Nhật Ký)
+    - Nhà cung cấp Console và Debug
+
+  • Controllers & Views
+    - Hỗ trợ MVC và Controllers
+
+  • Entity Framework Core
+    - Nhà cung cấp SQL Server
+    - Migration cơ sở dữ liệu tự động khi khởi động
+
+  • Quản Lý Session
+    - Hết hạn 30 phút
+    - Cookies HttpOnly
+    - Cookies thiết yếu cho xác thực
+
+  • Swagger/OpenAPI
+    - Chỉ ở chế độ phát triển
+
+  • Routing (Định Tuyến)
+    - Định tuyến Area cho Admin/Staff
+    - Định tuyến MVC mặc định
+
+
+7.2 KHỞI TẠO CƠ SỞ DỮ LIỆU
+
+  • Migration Tự Động
+    - Áp dụng các migration đang chờ xử lý khi khởi động
+    - Tạo bảng nếu không tồn tại
+
+  • Seeding Dữ Liệu
+    - DbInitializer.Seed() được gọi khi khởi động
+    - Tạo các vai trò, hãng xe, loại xe ban đầu
+    - Tạo dữ liệu xe mẫu và người dùng kiểm tra
+
+
+7.3 TỆPTÀI NGUYÊN TĨNH & UPLOAD
+
+  • Thư Mục Tệp Tĩnh (wwwroot/)
+    - CSS, JavaScript, Ảnh
+    - Có thể truy cập công khai
+
+  • Thư Mục Upload Ảnh Xe
+    - wwwroot/uploads/cars/
+    - Dùng để lưu trữ ảnh xe được tải lên
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VIII. TÀI CHÍNH HIỆU SUẤT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+8.1 KỸ THUẬT TỐI ƯU HÓA
+
+  • Eager Loading Entity Framework
+    - Tải sẵn để ngăn chặn truy vấn N+1
+    - Ví dụ: Include(x => x.CarType) cho liệt kê xe
+
+  • Phân Trang
+    - Xử lý tập kết quả lớn bằng phân trang
+    - Giới hạn kết quả truy vấn cơ sở dữ liệu
+
+  • Caching (Bộ Nhớ Đệm)
+    - Distributed Memory Cache có sẵn
+    - Có thể bộ nhớ đệm dữ liệu được truy cập thường xuyên
+
+  • Caching Session
+    - Dữ liệu session người dùng được lưu trữ trong bộ nhớ
+    - Giảm chi phí chung xác thực
+
+
+8.2 XEM XÉT KHẢ NĂNG MỞ RỘNG
+
+  • Thiết Kế API Không Trạng Thái
+    - Các endpoint API có thể được cân bằng tải
+    - Trạng thái session trong bộ nhớ (có thể chuyển sang Redis)
+
+  • Pooling Kết Nối Cơ Sở Dữ Liệu
+    - Pooling kết nối SQL Server
+    - Entity Framework quản lý kết nối
+
+  • Phục Vụ Tệp Tĩnh
+    - Tệp wwwroot có thể được phục vụ bởi CDN
+    - Giảm tải máy chủ ứng dụng
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IX. QUY TRÌNH PHÁT TRIỂN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+9.1 THÊM TÍNH NĂNG MỚI
+
+1. Tạo Mô Hình Dữ Liệu
+   - Thêm lớp entity trong Models/
+   - Thêm DbSet trong ApplicationDbContext
+
+2. Tạo Migration Cơ Sở Dữ Liệu
+   - dotnet ef migrations add [TênMigration]
+   - Migration áp dụng khi khởi động ứng dụng
+
+3. Tạo API Controller
+   - Thêm controller trong Controllers/API/
+   - Triển khai CRUD endpoints
+
+4. Tạo View/Trang
+   - Thêm Razor view trong Views/[Feature]/
+   - Sử dụng layout chung
+
+5. Thêm ViewModel (nếu cần)
+   - Tạo ViewModel trong ViewModels/
+   - Cho dữ liệu view phức tạp
+
+6. Cập Nhật Điều Hướng
+   - Thêm mục menu nếu cần
+   - Cập nhật _Layout.cshtml
+
+
+9.2 GỠ LỖI & LOGGING
+
+  • Nhật Ký Ứng Dụng
+    - Đầu ra console (phát triển)
+    - Đầu ra debug
+    - Cấu hình trong Program.cs
+
+  • Swagger UI
+    - Có sẵn tại /swagger ở chế độ phát triển
+    - Kiểm tra API endpoints
+    - Xem tài liệu API
+
+  • Gỡ Lỗi Session
+    - Kiểm tra giá trị session trong controllers
+    - HttpContext.Session.GetString("UserId")
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+X. NÂNG CẤP & LỘ TRÌNH TƯƠNG LAI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Các Cải Tiến Tiềm Năng:
+
+  • Xác Thực Người Dùng
+    - Di chuyển sang ASP.NET Identity
+    - Hỗ trợ OAuth/Đăng Nhập Mạng Xã Hội
+
+  • Tích Hợp Thanh Toán
+    - Cổng thanh toán thực (Stripe, PayPal)
+    - Xử lý giao dịch trực tuyến
+
+  • Thông Báo Email
+    - Tích hợp SendGrid hoặc SMTP
+    - Email tự động cho cập nhật trạng thái
+
+  • Chiến Lược Caching
+    - Redis cho bộ nhớ đệm phân tán
+    - Caching phản hồi API
+
+  • Lưu Trữ Tệp
+    - Azure Blob Storage cho ảnh xe
+    - Tích hợp CDN để cung cấp nhanh hơn
+
+  • Phân Tích
+    - Theo dõi hành vi người dùng
+    - Báo cáo chỉ số bán hàng
+
+  • Tối Ưu Hóa Tìm Kiếm
+    - Elasticsearch cho tìm kiếm nâng cao
+    - Khả năng tìm kiếm toàn văn bản
+
+  • Ứng Dụng Di Động
+    - Ứng dụng iOS/Android gốc
+    - Sử dụng existing API endpoints
+
+  • Giới Hạn Tỷ Lệ
+    - Giới hạn tỷ lệ API
+    - Ngăn chặn lạm dụng
+
+  • Thông Báo WebSocket
+    - Thông báo thời gian thực cho nhân viên
+    - Cập nhật yêu cầu mua hàng trực tiếp
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+XI. HỖ TRỢ & BẢO TRÌ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Các Tác Vụ Bảo Trì Thường Xuyên:
+
+  • Sao Lưu Cơ Sở Dữ Liệu
+    - Khuyến cáo sao lưu hàng ngày
+    - Kiểm tra các thủ tục khôi phục
+
+  • Bản Vá Bảo Mật
+    - Giữ .NET và các phụ thuộc được cập nhật
+    - Theo dõi các cảnh báo bảo mật
+
+  • Xoay Vòng Nhật Ký
+    - Triển khai xoay vòng tệp nhật ký
+    - Lưu trữ nhật ký cũ
+
+  • Giám Sát Hiệu Suất
+    - Giám sát hiệu suất ứng dụng
+    - Theo dõi thời gian phản hồi API
+    - Giám sát hiệu suất truy vấn cơ sở dữ liệu
+
+Xử Lý Sự Cố:
+
+  • Lỗi Kết Nối
+    - Xác minh chuỗi kết nối SQL Server
+    - Kiểm tra tính khả dụng máy chủ cơ sở dữ liệu
+
+  • Vấn Đề Session
+    - Xác minh cấu hình session middleware
+    - Kiểm tra cài đặt cookie
+
+  • Vấn Đề Upload Tệp
+    - Xác minh quyền thư mục upload
+    - Kiểm tra không gian đĩa trống
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LỊCH SỬ PHIÊN BẢN DOCUMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phiên Bản 1.0 - Tạo Document Ban Đầu
+✓ Tài liệu thiết kế hệ thống toàn diện
+✓ Tổng quan kiến trúc
+✓ Mô tả các tính năng
+✓ Giải thích thiết kế UI/UX
+✓ Schema cơ sở dữ liệu
+✓ Cân nhắc bảo mật
+✓ Cấu hình triển khai
+✓ Dịch sang tiếng Việt
+✓ Định dạng báo cáo chuyên nghiệp
+
+Ngày Tạo: 07/04/2025
+Ngôn Ngữ: Tiếng Việt
+Công Nghệ: .NET 10, ASP.NET Core, Razor Pages
+Đối Tượng Mục Tiêu: Nhà phát triển, Kiến trúc sư, Quản lý dự án
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                           KẾT THÚC TÀI LIỆU                                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝

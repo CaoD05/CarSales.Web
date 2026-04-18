@@ -1,0 +1,1148 @@
+================================================================================
+                    CAR SALES WEB - SYSTEM DESIGN DOCUMENT
+================================================================================
+
+Project Name: CarSales.Web
+Technology Stack: .NET 10, ASP.NET Core Razor Pages
+Database: SQL Server
+Framework Pattern: MVC/Razor Pages with API Controllers
+
+================================================================================
+1. SYSTEM ARCHITECTURE OVERVIEW
+================================================================================
+
+1.1 HIGH-LEVEL ARCHITECTURE
+
+The CarSales.Web system follows a layered architecture pattern with the 
+following components:
+
+    ┌─────────────────────────────────────────────────────────┐
+    │                    PRESENTATION LAYER                   │
+    │  (Razor Pages Views, API Controllers, UI Components)    │
+    ├─────────────────────────────────────────────────────────┤
+    │                   BUSINESS LOGIC LAYER                  │
+    │         (Controllers, Services, API Endpoints)          │
+    ├─────────────────────────────────────────────────────────┤
+    │                    DATA ACCESS LAYER                    │
+    │      (Entity Framework Core, DbContext, Migrations)     │
+    ├─────────────────────────────────────────────────────────┤
+    │                    DATABASE LAYER                       │
+    │              (SQL Server Database Instance)             │
+    └─────────────────────────────────────────────────────────┘
+
+1.2 PROJECT STRUCTURE
+
+CarSales.Web/
+├── Areas/
+│   ├── Admin/                           # Admin Portal Area
+│   │   ├── Controllers/
+│   │   │   ├── DashboardController.cs
+│   │   │   ├── CarsManagementController.cs
+│   │   │   └── UsersManagementController.cs
+│   │   └── Views/
+│   │
+│   └── Staff/                           # Staff Portal Area
+│       ├── Controllers/
+│       │   ├── DashboardController.cs
+│       │   ├── PurchaseRequestsController.cs
+│       │   └── DepositsController.cs
+│       └── Views/
+│
+├── Controllers/                         # Main Web Controllers
+│   ├── HomeController.cs                # Homepage & Browse Cars
+│   ├── AccountController.cs             # Authentication
+│   ├── CarsController.cs                # Car Details & Management
+│   ├── PagesController.cs               # Content Pages
+│   └── API/                             # REST API Endpoints
+│       ├── CarsApiController.cs
+│       ├── BrandsApiController.cs
+│       ├── AuthApiController.cs
+│       ├── DepositsApiController.cs
+│       └── PurchaseRequestsApiController.cs
+│
+├── Models/                              # Entity Models
+│   ├── User.cs                          # User Account Model
+│   ├── Role.cs                          # User Roles (Admin/Staff/Customer)
+│   ├── Car.cs                           # Car Listings
+│   ├── Brand.cs                         # Car Brands
+│   ├── CarType.cs                       # Car Categories
+│   ├── CarImage.cs                      # Car Images
+│   ├── Favorite.cs                      # Favorite Cars
+│   ├── PurchaseRequest.cs               # Purchase/Inquiry Requests
+│   ├── Deposit.cs                       # Deposit Transactions
+│   └── ErrorViewModel.cs
+│
+├── Data/                                # Data Access Layer
+│   ├── ApplicationDbContext.cs          # EF Core DbContext
+│   └── DbInitializer.cs                 # Seed Initial Data
+│
+├── ViewModels/                          # View Models (DTOs)
+│   ├── HomeIndexViewModel.cs
+│   ├── CarDetailsViewModel.cs
+│   ├── CarFilterViewModel.cs
+│   ├── CarBuyPageViewModel.cs
+│   ├── LoginViewModel.cs
+│   ├── RegisterViewModel.cs
+│   ├── DepositViewModel.cs
+│   ├── UserTicketsViewModel.cs
+│   ├── ContentPageViewModel.cs
+│   └── *Dtos.cs                         # Data Transfer Objects
+│
+├── Views/                               # Razor View Templates
+│   ├── Shared/
+│   │   ├── _Layout.cshtml               # Master Layout
+│   │   ├── _DashboardLayout.cshtml      # Dashboard Layout
+│   │   └── _*.cshtml                    # Partial Views
+│   ├── Home/
+│   ├── Cars/
+│   ├── Account/
+│   └── Pages/
+│
+├── Attributes/
+│   └── RoleAuthorizeAttribute.cs        # Custom Authorization Attribute
+│
+├── Helpers/
+│   ├── FileHelper.cs                    # File Upload/Management
+│   └── PasswordHelper.cs                # Password Hashing
+│
+├── Migrations/                          # Database Migrations
+│   ├── 20260320144324_InitialCreate.cs
+│   └── 20260407164003_SetupDatabase.cs
+│
+├── wwwroot/                             # Static Files
+│   ├── css/
+│   ├── js/
+│   ├── images/
+│   └── uploads/
+│       └── cars/                        # Car Image Upload Directory
+│
+├── Program.cs                           # Application Startup Configuration
+└── CarSales.Web.csproj                  # Project Configuration
+
+
+1.3 TECHNOLOGY STACK DETAILS
+
+Framework:          .NET 10
+Web Framework:      ASP.NET Core (Razor Pages + MVC Controllers)
+Database ORM:       Entity Framework Core 10.0.5
+Database:           SQL Server
+Session Management: Distributed Memory Cache with Session Middleware
+API Documentation: Swagger (Swashbuckle.AspNetCore 10.1.5)
+Authentication:    Session-based (Custom attribute-based authorization)
+
+
+1.4 KEY ARCHITECTURAL PATTERNS
+
+1. Layered Architecture
+   - Presentation Layer: Razor Pages Views and API Controllers
+   - Business Logic Layer: Controllers and API Endpoints
+   - Data Access Layer: Entity Framework Core with DbContext
+   - Database Layer: SQL Server
+
+2. MVC Pattern
+   - Models: Entity classes representing domain objects
+   - Views: Razor templates for rendering HTML
+   - Controllers: Business logic and request handling
+
+3. Repository-like Pattern
+   - ApplicationDbContext serves as the data access abstraction layer
+   - Direct DbSet access through DbContext
+
+4. Attribute-Based Authorization
+   - Custom [RoleAuthorize] attribute for role-based access control
+   - Session-based user context storage
+
+5. API-Driven Frontend
+   - Separate API controllers for data operations
+   - Frontend can consume REST endpoints
+   - Swagger UI for API documentation
+
+
+================================================================================
+2. FEATURE DESCRIPTIONS AND COMPONENTS
+================================================================================
+
+2.1 AUTHENTICATION & USER MANAGEMENT
+
+Components:
+  - AccountController.cs
+  - AuthApiController.cs
+  - User.cs (Model)
+  - LoginViewModel.cs / RegisterViewModel.cs
+  - RoleAuthorizeAttribute.cs
+
+Features:
+  • User Registration
+    - Email validation
+    - Password hashing using PasswordHelper
+    - Role assignment (Admin, Staff, Customer)
+    - Profile creation (Full Name, Phone, Address, Avatar)
+
+  • User Login
+    - Email-based authentication
+    - Session management (30-minute idle timeout)
+    - Role-based redirect to appropriate dashboard
+
+  • User Profile Management
+    - Update profile information
+    - Avatar upload support
+    - Contact details management
+
+  • Role-Based Access Control (RBAC)
+    - Three role types: Admin, Staff, Customer
+    - Custom RoleAuthorizeAttribute enforces role checks
+    - Session-based role validation
+    - Role hierarchy: Admin > Staff > Customer
+
+Workflow:
+  1. User registers with email and password
+  2. Password is hashed before storage
+  3. User logs in with email credentials
+  4. Session stores UserId and Role
+  5. RoleAuthorizeAttribute validates access based on stored role
+  6. Session expires after 30 minutes of inactivity
+
+
+2.2 CAR CATALOG & BROWSING
+
+Components:
+  - HomeController.cs
+  - CarsController.cs
+  - CarsApiController.cs
+  - Car.cs, Brand.cs, CarType.cs, CarImage.cs (Models)
+  - CarFilterViewModel.cs
+  - Views/Home/Index.cshtml
+  - Views/Cars/Details.cshtml
+
+Features:
+  • Car Listing & Browsing
+    - Display all available cars
+    - Filter by car type
+    - Sort by featured status and creation date
+    - Pagination support
+    - Car details display with images
+
+  • Car Search & Discovery
+    - Filter by brand
+    - Filter by car type
+    - Filter by price range
+    - Filter by year
+    - Filter by fuel type
+    - Search by car name
+
+  • Car Details Page
+    - Full car specifications
+    - Multiple car images
+    - Owner/seller information
+    - Price and availability status
+    - Related cars suggestions
+
+  • Car Information Structure
+    - Car Name
+    - Brand
+    - Car Type (Sedan, SUV, Truck, etc.)
+    - Price
+    - Year of Manufacture
+    - Mileage
+    - Fuel Type (Gasoline, Diesel, Hybrid, Electric)
+    - Transmission (Manual, Automatic)
+    - Seats
+    - Color
+    - Engine Specifications
+    - Origin (Domestic, Imported)
+    - Description
+    - Images and Photos
+    - Status (Available, Sold, Pending)
+
+Workflow:
+  1. Customer visits Home page
+  2. Selects car type from filter
+  3. Views filtered car list sorted by featured/recent
+  4. Clicks car to view details
+  5. Sees full specifications and images
+  6. Can add to favorites or proceed to purchase
+
+
+2.3 FAVORITES & WISHLIST
+
+Components:
+  - Favorite.cs (Model)
+  - HomeController.cs
+  - CarsApiController.cs
+
+Features:
+  • Add/Remove Favorites
+    - Save favorite cars to wishlist
+    - Quick access from customer profile
+    - Display favorite count
+
+  • Favorite Management
+    - View all favorite cars
+    - Remove cars from favorites
+    - Track favorite date/time
+
+Workflow:
+  1. Logged-in customer views car details
+  2. Clicks "Add to Favorites"
+  3. Car is saved to Favorite table linked to UserId
+  4. Customer can view all favorites from profile/wishlist page
+
+
+2.4 CAR PURCHASE REQUEST SYSTEM
+
+Components:
+  - PurchaseRequestsController.cs
+  - PurchaseRequestsApiController.cs
+  - PurchaseRequest.cs (Model)
+  - PurchaseRequestViewModel.cs / PurchaseRequestDtos.cs
+  - Areas/Staff/Controllers/PurchaseRequestsController.cs
+
+Features:
+  • Purchase Request Submission
+    - Customer submits inquiry for car purchase
+    - Provides contact information
+    - Optional message/notes
+    - Auto-links to customer and car
+
+  • Purchase Request Management (Staff View)
+    - Staff dashboard to view all requests
+    - Filter by status (New, In Progress, Completed, Rejected)
+    - Assign to specific staff member
+    - Update request status
+    - Add internal notes
+
+  • Request Status Workflow
+    - New: Initial request created
+    - In Progress: Staff is processing
+    - Completed: Purchase finalized
+    - Rejected: Request declined
+
+  • Request Information
+    - Full Name, Email, Phone
+    - Car being requested
+    - Inquiry message
+    - Timestamp
+    - Staff assignment
+    - Status tracking
+
+Workflow:
+  1. Customer views car details
+  2. Clicks "Request to Buy"
+  3. Fills purchase request form
+  4. Request created in database
+  5. Staff member receives notification
+  6. Staff updates request status
+  7. Customer can track request progress
+
+
+2.5 DEPOSIT/PAYMENT SYSTEM
+
+Components:
+  - DepositsController.cs
+  - DepositsApiController.cs
+  - Deposit.cs (Model)
+  - DepositViewModel.cs / DepositDtos.cs
+  - Areas/Staff/Controllers/DepositsController.cs
+
+Features:
+  • Deposit Management
+    - Record deposit transactions
+    - Track deposit amount
+    - Link deposits to purchase requests
+    - Staff can process and confirm deposits
+
+  • Deposit Tracking
+    - Customer views deposit status
+    - Staff manages pending deposits
+    - Deposit history
+    - Amount validation
+
+  • Deposit Information
+    - Deposit Amount (Decimal with 18,2 precision)
+    - Linked Purchase Request
+    - Linked Customer
+    - Assigned Staff Member
+    - Deposit Date/Timestamp
+    - Status
+
+Workflow:
+  1. Customer decides to proceed with purchase
+  2. Submits deposit transaction
+  3. Amount recorded in Deposit table
+  4. Staff receives deposit for processing
+  5. Staff confirms and updates status
+  6. Customer receives confirmation
+
+
+2.6 ADMIN MANAGEMENT SYSTEM
+
+Components:
+  - Areas/Admin/Controllers/DashboardController.cs
+  - Areas/Admin/Controllers/CarsManagementController.cs
+  - Areas/Admin/Controllers/UsersManagementController.cs
+  - Views/Shared/_DashboardLayout.cshtml
+
+Features:
+  • Admin Dashboard
+    - System overview and statistics
+    - User count, car count, recent activity
+    - Quick access to management sections
+
+  • Car Management
+    - Add new cars to catalog
+    - Edit car details
+    - Delete cars (archive/deactivate)
+    - Upload car images
+    - Set featured status
+    - Manage car status (Available/Sold/Pending)
+    - Bulk operations
+
+  • User Management
+    - View all users
+    - Edit user roles and permissions
+    - Activate/deactivate users
+    - Manage user accounts
+    - Reset passwords
+
+  • Content Management
+    - Manage static content/pages
+    - Update website information
+
+Workflow:
+  1. Admin logs in
+  2. Accesses admin dashboard
+  3. Manages cars, users, or content
+  4. Changes are reflected in production
+
+
+2.7 STAFF MANAGEMENT SYSTEM
+
+Components:
+  - Areas/Staff/Controllers/DashboardController.cs
+  - Areas/Staff/Controllers/PurchaseRequestsController.cs
+  - Areas/Staff/Controllers/DepositsController.cs
+
+Features:
+  • Staff Dashboard
+    - Overview of assigned tasks
+    - Pending requests count
+    - Recent activity
+
+  • Purchase Request Management
+    - View assigned purchase requests
+    - Update request status
+    - Communicate with customers
+    - Track conversion metrics
+
+  • Deposit Processing
+    - View pending deposits
+    - Confirm deposit receipts
+    - Track deposit status
+    - Generate deposit reports
+
+Workflow:
+  1. Staff logs in
+  2. Accesses staff dashboard
+  3. Views assigned purchase requests
+  4. Processes deposits
+  5. Updates request statuses
+
+
+2.8 API ENDPOINTS
+
+Controllers:
+  - BrandsApiController.cs
+    GET    /api/brands            - Get all brands
+    POST   /api/brands            - Create new brand
+    GET    /api/brands/{id}       - Get brand by ID
+    PUT    /api/brands/{id}       - Update brand
+    DELETE /api/brands/{id}       - Delete brand
+
+  - CarsApiController.cs
+    GET    /api/cars              - Get all cars (with filters)
+    POST   /api/cars              - Create new car
+    GET    /api/cars/{id}         - Get car by ID
+    PUT    /api/cars/{id}         - Update car
+    DELETE /api/cars/{id}         - Delete car
+
+  - AuthApiController.cs
+    POST   /api/auth/login        - User login (returns session)
+    POST   /api/auth/register     - User registration
+    POST   /api/auth/logout       - User logout
+
+  - PurchaseRequestsApiController.cs
+    GET    /api/purchaserequests  - Get purchase requests
+    POST   /api/purchaserequests  - Create request
+    GET    /api/purchaserequests/{id} - Get request by ID
+    PUT    /api/purchaserequests/{id} - Update request status
+
+  - DepositsApiController.cs
+    GET    /api/deposits          - Get deposits
+    POST   /api/deposits          - Record deposit
+    GET    /api/deposits/{id}     - Get deposit by ID
+
+
+================================================================================
+3. UI/UX DESIGN EXPLANATIONS
+================================================================================
+
+3.1 LAYOUT STRUCTURE
+
+Master Layout (_Layout.cshtml):
+  Purpose: Provides consistent page structure for all public pages
+  
+  Components:
+    • Navigation Bar
+      - Logo/Home link
+      - Car browse link
+      - My Favorites link
+      - Login/Logout link
+      - User profile dropdown (if logged in)
+
+    • Main Content Area
+      - Page-specific content rendered here via @RenderBody()
+
+    • Sidebar (Optional)
+      - Search/Filter options
+      - Quick links
+      - Recent views
+
+    • Footer
+      - Copyright information
+      - Links (About, Contact, Terms)
+      - Contact details
+
+Dashboard Layout (_DashboardLayout.cshtml):
+  Purpose: Provides layout for Admin/Staff dashboard pages
+  
+  Components:
+    • Sidebar Navigation
+      - Dashboard link
+      - Menu items based on role (Admin/Staff)
+      - User profile/logout option
+
+    • Header/Top Bar
+      - Welcome message
+      - Current user name
+      - Quick notifications
+
+    • Main Content Area
+      - Dashboard content specific to role
+
+    • Footer
+      - System information
+
+
+3.2 PAGE FLOW & USER JOURNEY
+
+Public User Flow:
+  Home Page
+    ↓
+  Browse/Search Cars
+    ↓
+  View Car Details
+    ↓
+  [Optional] Add to Favorites
+    ↓
+  [Optional] Login
+    ↓
+  Submit Purchase Request
+    ↓
+  View Request Status
+    ↓
+  Process Deposit
+
+
+Authenticated User Flow (Customer):
+  Login
+    ↓
+  Dashboard/Profile
+    ↓
+  Browse Cars
+    ↓
+  View Favorites
+    ↓
+  Submit Purchase Request
+    ↓
+  Track Purchase Status
+    ↓
+  Process Deposit
+    ↓
+  Complete Purchase
+
+
+Admin Flow:
+  Admin Login
+    ↓
+  Admin Dashboard
+    ↓
+  Manage Cars
+    ↓
+  Manage Users
+    ↓
+  View System Statistics
+    ↓
+  Manage Content
+
+
+Staff Flow:
+  Staff Login
+    ↓
+  Staff Dashboard
+    ↓
+  View Purchase Requests
+    ↓
+  Update Request Status
+    ↓
+  Process Deposits
+    ↓
+  View Reports
+
+
+3.3 KEY UI COMPONENTS
+
+Homepage:
+  • Hero Section
+    - Large call-to-action banner
+    - Search box for cars
+    - Background image/slider
+
+  • Featured Cars Showcase
+    - Grid display of featured vehicles
+    - Car image, name, price
+    - Quick "View Details" button
+
+  • Car Type Filter Navigation
+    - Horizontal or vertical filter tabs
+    - Shows car type categories
+    - Real-time filtering
+
+  • Car Listing Cards
+    - Compact car information display
+    - Thumbnail image
+    - Car name, type, price
+    - "View Details" and "Add to Favorites" buttons
+    - Favorite heart icon indicator
+
+  • Pagination
+    - Navigation between car list pages
+    - Total count display
+
+Car Details Page:
+  • Image Gallery
+    - Large primary image
+    - Thumbnail carousel for additional images
+    - Image zoom capability
+
+  • Vehicle Information Panel
+    - Car name and basic specs
+    - Price display
+    - "Request to Buy" button
+    - "Add to Favorites" button
+
+  • Detailed Specifications
+    - Two-column layout
+    - Brand, Type, Year
+    - Mileage, Fuel type, Transmission
+    - Engine, Seats, Color, Origin
+    - Full description
+
+  • Related Cars Section
+    - Recommended similar vehicles
+    - Quick links to browse similar
+
+  • Contact/Request Section
+    - Quick purchase request form
+    - Staff contact information
+    - Inquiry message box
+
+Dashboard Pages (Admin/Staff):
+  • Statistics Cards
+    - Key metrics (Total users, Total cars, etc.)
+    - Color-coded cards
+    - Quick-view numbers
+
+  • Data Tables
+    - Sortable columns
+    - Pagination
+    - Action buttons (Edit, Delete, View)
+    - Bulk action checkboxes
+
+  • Forms
+    - Input validation
+    - Required field indicators
+    - Submit/Cancel buttons
+    - Error messages
+
+  • Status Badges
+    - Color-coded status indicators
+    - Clear status labels
+
+
+3.4 RESPONSIVE DESIGN PRINCIPLES
+
+Mobile-First Approach:
+  • Navigation
+    - Hamburger menu for mobile devices
+    - Responsive dropdown menus
+    - Touch-friendly button sizes (minimum 44x44px)
+
+  • Car Listing
+    - Single column layout on mobile
+    - Two columns on tablet
+    - Three+ columns on desktop
+    - Images scale appropriately
+
+  • Forms
+    - Full-width input fields on mobile
+    - Optimized form layout
+    - Easy-to-tap buttons
+
+  • Typography
+    - Responsive font sizes
+    - Appropriate line spacing
+    - Readable on all devices
+
+
+3.5 COLOR & VISUAL HIERARCHY
+
+Brand Colors:
+  • Primary Color: Used for CTAs (Purchase, Favorites)
+  • Secondary Color: Used for accents and highlights
+  • Neutral Colors: Used for backgrounds and borders
+  • Status Colors:
+    - Green: Available, Success, Active
+    - Yellow/Orange: Pending, Warning
+    - Red: Sold, Danger, Error
+    - Gray: Inactive, Disabled
+
+
+3.6 USER FEEDBACK & INTERACTION
+
+Feedback Mechanisms:
+  • Success Messages
+    - Green toast notifications
+    - "Favorite added successfully"
+    - "Purchase request submitted"
+
+  • Error Messages
+    - Red toast notifications
+    - Validation error highlights
+    - Helpful error descriptions
+
+  • Loading States
+    - Loading spinners
+    - Skeleton screens for data loading
+    - Disabled buttons during submission
+
+  • Confirmation Dialogs
+    - Delete confirmations
+    - Status change confirmations
+
+  • Session Timeout
+    - Warning message before session expires
+    - Auto-redirect to login after timeout
+
+
+3.7 ACCESSIBILITY FEATURES
+
+  • Semantic HTML
+    - Proper heading hierarchy
+    - Form labels associated with inputs
+    - ARIA labels for screen readers
+
+  • Keyboard Navigation
+    - Tab order for form fields
+    - Keyboard accessible buttons
+    - Focus indicators
+
+  • Color Contrast
+    - WCAG AA compliance
+    - Sufficient contrast ratios
+
+  • Alt Text
+    - Descriptive alt text for car images
+    - Image descriptions where needed
+
+
+================================================================================
+4. DATABASE SCHEMA OVERVIEW
+================================================================================
+
+4.1 ENTITY RELATIONSHIP DIAGRAM (ERM)
+
+User (N) ──── (1) Role
+  ├─ (1) ──── (N) Favorite
+  ├─ (1) ──── (N) PurchaseRequest
+  └─ (1) ──── (N) Deposit
+
+Car (1) ──── (N) CarImage
+Car (N) ──── (1) Brand
+Car (N) ──── (1) CarType
+Car (1) ──── (N) Favorite
+Car (1) ──── (N) PurchaseRequest
+
+PurchaseRequest (N) ──── (1) User
+PurchaseRequest (N) ──── (1) Staff (User)
+PurchaseRequest (N) ──── (1) Car
+
+Deposit (N) ──── (1) User
+Deposit (N) ──── (1) Staff (User)
+
+
+4.2 KEY TABLES
+
+Roles
+  - RoleId (Primary Key)
+  - RoleName (Admin, Staff, Customer)
+
+Users
+  - UserId (Primary Key)
+  - FullName, Email, PasswordHash
+  - Phone, Address, Avatar
+  - RoleId (Foreign Key → Roles)
+  - IsActive, CreatedAt
+
+Cars
+  - CarId (Primary Key)
+  - CarName, Price, Year
+  - BrandId (Foreign Key → Brands)
+  - CarTypeId (Foreign Key → CarTypes)
+  - Mileage, FuelType, Transmission
+  - Seats, Color, Engine, Origin
+  - Description, Status
+  - IsFeatured, CreatedAt
+
+Brands
+  - BrandId (Primary Key)
+  - BrandName
+
+CarTypes
+  - CarTypeId (Primary Key)
+  - TypeName (Sedan, SUV, Truck, etc.)
+
+CarImages
+  - ImageId (Primary Key)
+  - CarId (Foreign Key → Cars)
+  - ImagePath, CreatedAt
+
+Favorites
+  - FavoriteId (Primary Key)
+  - UserId (Foreign Key → Users)
+  - CarId (Foreign Key → Cars)
+  - CreatedAt
+
+PurchaseRequests
+  - RequestId (Primary Key)
+  - UserId (Foreign Key → Users)
+  - CarId (Foreign Key → Cars)
+  - StaffId (Foreign Key → Users)
+  - FullName, Email, Phone, Message
+  - Status, CreatedAt, UpdatedAt
+
+Deposits
+  - DepositId (Primary Key)
+  - UserId (Foreign Key → Users)
+  - StaffId (Foreign Key → Users)
+  - DepositAmount (Decimal 18,2)
+  - Status, CreatedAt
+
+
+================================================================================
+5. SECURITY FEATURES
+================================================================================
+
+5.1 AUTHENTICATION & AUTHORIZATION
+
+  • Session-Based Authentication
+    - 30-minute idle timeout
+    - HttpOnly cookies (prevents JavaScript access)
+    - Secure flag for HTTPS transmission
+
+  • Password Security
+    - Hashed passwords using PasswordHelper
+    - Never stored in plain text
+    - Salt applied during hashing
+
+  • Role-Based Authorization
+    - Custom RoleAuthorizeAttribute
+    - Role validation on every protected request
+    - Three role levels: Admin, Staff, Customer
+
+  • Session Validation
+    - UserId and Role stored in session
+    - Checked before granting access
+    - Invalid sessions redirect to login
+
+
+5.2 DATA PROTECTION
+
+  • Foreign Key Constraints
+    - Prevent orphaned data
+    - OnDelete behavior: Restrict (prevents accidental data loss)
+
+  • Input Validation
+    - Required field validation
+    - Email format validation
+    - Phone number validation
+    - String length constraints
+
+  • SQL Injection Prevention
+    - Entity Framework Core parameterized queries
+    - No dynamic SQL construction
+
+
+5.3 API SECURITY
+
+  • CORS Headers
+    - Controlled cross-origin requests
+
+  • Swagger Documentation
+    - Available in development mode only
+
+  • Session Token Management
+    - Session ID validation
+    - CSRF protection via session state
+
+
+================================================================================
+6. DEPLOYMENT & CONFIGURATION
+================================================================================
+
+6.1 APPLICATION STARTUP (Program.cs)
+
+Configured Services:
+  • Logging
+    - Console and Debug providers
+
+  • Controllers & Views
+    - MVC and Controllers support
+
+  • Entity Framework Core
+    - SQL Server provider
+    - Automatic database migration on startup
+
+  • Session Management
+    - 30-minute timeout
+    - HttpOnly cookies
+    - Essential cookies for authentication
+
+  • Swagger/OpenAPI
+    - Development environment only
+
+  • Routing
+    - Area routing for Admin/Staff
+    - Default MVC routing
+
+
+6.2 DATABASE INITIALIZATION
+
+  • Automatic Migration
+    - Applies pending migrations at startup
+    - Creates tables if not exist
+
+  • Data Seeding
+    - DbInitializer.Seed() called at startup
+    - Creates initial roles, brands, car types
+    - Creates sample cars and test users
+
+
+6.3 STATIC FILES & UPLOADS
+
+  • Static Files Directory (wwwroot/)
+    - CSS, JavaScript, Images
+    - Publicly accessible
+
+  • Car Image Upload Directory
+    - wwwroot/uploads/cars/
+    - Used for storing user-uploaded car images
+
+
+================================================================================
+7. PERFORMANCE CONSIDERATIONS
+================================================================================
+
+7.1 OPTIMIZATION TECHNIQUES
+
+  • Entity Framework Include Statements
+    - Eager loading to prevent N+1 queries
+    - Example: Include(x => x.CarType) for car listings
+
+  • Pagination
+    - Large result sets handled with pagination
+    - Limits database query results
+
+  • Caching
+    - Distributed Memory Cache available
+    - Can cache frequently accessed data (brands, types)
+
+  • Session Caching
+    - User session data stored in memory
+    - Reduces authentication overhead
+
+
+7.2 SCALABILITY CONSIDERATIONS
+
+  • Stateless API Design
+    - API endpoints can be load-balanced
+    - Session state in memory (can be moved to Redis for distributed)
+
+  • Database Connection Pooling
+    - SQL Server connection pooling
+    - Entity Framework handles connection management
+
+  • Static File Serving
+    - wwwroot files can be served by CDN
+    - Reduces application server load
+
+
+================================================================================
+8. DEVELOPMENT WORKFLOW
+================================================================================
+
+8.1 ADDING NEW FEATURES
+
+1. Create Data Model
+   - Add entity class in Models/
+   - Add DbSet in ApplicationDbContext
+
+2. Create Database Migration
+   - dotnet ef migrations add [MigrationName]
+   - Migration applies on application startup
+
+3. Create API Controller
+   - Add controller in Controllers/API/
+   - Implement CRUD endpoints
+
+4. Create View/Page
+   - Add Razor view in Views/[Feature]/
+   - Use shared layout
+
+5. Add ViewModel (if needed)
+   - Create ViewModel in ViewModels/
+   - For complex view data
+
+6. Update Navigation
+   - Add menu items if needed
+   - Update _Layout.cshtml
+
+
+8.2 DEBUGGING & LOGGING
+
+  • Application Logs
+    - Console output (development)
+    - Debug output
+    - Configure in Program.cs
+
+  • Swagger UI
+    - Available at /swagger in development
+    - Test API endpoints
+    - View API documentation
+
+  • Session Debugging
+    - Check session values in controllers
+    - HttpContext.Session.GetString("UserId")
+
+
+================================================================================
+9. FUTURE ENHANCEMENTS & ROADMAP
+================================================================================
+
+Potential Improvements:
+  • User Authentication
+    - Migrate to ASP.NET Identity
+    - Support for OAuth/Social Login
+
+  • Payment Integration
+    - Real payment gateway (Stripe, PayPal)
+    - Online transaction processing
+
+  • Email Notifications
+    - SendGrid or SMTP integration
+    - Automated emails for status updates
+
+  • Caching Strategy
+    - Redis for distributed caching
+    - API response caching
+
+  • File Storage
+    - Azure Blob Storage for car images
+    - CDN integration for faster delivery
+
+  • Analytics
+    - User behavior tracking
+    - Sales metrics and reporting
+
+  • Search Optimization
+    - Elasticsearch for advanced search
+    - Full-text search capabilities
+
+  • Mobile Application
+    - Native iOS/Android apps
+    - Consume existing API endpoints
+
+  • Rate Limiting
+    - API rate limiting
+    - Prevent abuse
+
+  • WebSocket Notifications
+    - Real-time notifications for staff
+    - Live purchase request updates
+
+
+================================================================================
+10. SUPPORT & MAINTENANCE
+================================================================================
+
+Regular Maintenance Tasks:
+  • Database Backups
+    - Daily backups recommended
+    - Test restore procedures
+
+  • Security Patches
+    - Keep .NET and dependencies updated
+    - Monitor security advisories
+
+  • Log Rotation
+    - Implement log file rotation
+    - Archive old logs
+
+  • Performance Monitoring
+    - Monitor application performance
+    - Track API response times
+    - Monitor database query performance
+
+Troubleshooting:
+  • Connection Errors
+    - Verify SQL Server connection string
+    - Check database server availability
+
+  • Session Issues
+    - Verify session middleware configuration
+    - Check cookie settings
+
+  • File Upload Issues
+    - Verify upload directory permissions
+    - Check disk space availability
+
+
+================================================================================
+DOCUMENT VERSION HISTORY
+================================================================================
+
+Version 1.0 - Initial Document Creation
+- Comprehensive system design documentation
+- Architecture overview
+- Feature descriptions
+- UI/UX design explanations
+- Database schema
+- Security considerations
+- Deployment configuration
+
+Generated: 2025-04-07
+Technology Stack: .NET 10, ASP.NET Core, Razor Pages
+Target Audience: Developers, Architects, Project Managers
+
+================================================================================
+                                END OF DOCUMENT
+================================================================================

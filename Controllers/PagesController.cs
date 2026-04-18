@@ -31,9 +31,8 @@ public class PagesController : Controller
         ["shipping-policy"] = CreatePage("shipping-policy", "Chính sách giao nhận vận chuyển", "Bàn giao an toàn", "Quy định giao nhận xe tại showroom hoặc giao tận nơi theo khu vực hỗ trợ.", "Liên hệ vận chuyển", "/Pages/Details/contact", "Xem xe", "/Cars/Index"),
         ["privacy-policy"] = CreatePage("privacy-policy", "Chính sách bảo mật thông tin", "Bảo vệ dữ liệu khách hàng", "Cam kết lưu trữ và xử lý thông tin cá nhân theo nguyên tắc bảo mật và minh bạch.", "Xem điều khoản", "/Pages/Details/terms-and-conditions", "Liên hệ", "/Pages/Details/contact"),
         ["terms-and-conditions"] = CreatePage("terms-and-conditions", "Điều kiện và điều khoản", "Quy định sử dụng dịch vụ", "Tổng hợp các điều khoản trong quá trình mua bán, sử dụng dịch vụ và bảo hành.", "Liên hệ hỗ trợ", "/Pages/Details/contact", "Về trang chủ", "/"),
-        ["course-requirements"] = CreatePage("course-requirements", "Đối chiếu yêu cầu học phần", "Tổng hợp tính năng theo đề bài", "Trang tổng hợp các chức năng chính đã triển khai và định hướng bổ sung để hoàn thiện đồ án.", "Xem danh sách xe", "/Cars/Index", "Liên hệ", "/Pages/Details/contact"),
-        ["security-and-i18n"] = CreatePage("security-and-i18n", "Bảo mật và quốc tế hóa", "An toàn và mở rộng", "Định hướng triển khai các biện pháp bảo mật và hỗ trợ đa ngôn ngữ cho hệ thống.", "Xem yêu cầu học phần", "/Pages/Details/course-requirements", "Liên hệ", "/Pages/Details/contact"),
-        ["testing-and-quality"] = CreatePage("testing-and-quality", "Kiểm thử và chất lượng", "Đảm bảo tính ổn định", "Kế hoạch kiểm thử chức năng và tiêu chí nghiệm thu trước khi bàn giao sản phẩm.", "Xem yêu cầu học phần", "/Pages/Details/course-requirements", "Về trang chủ", "/"),
+        ["security-and-i18n"] = CreatePage("security-and-i18n", "Bảo mật và quốc tế hóa", "An toàn và mở rộng", "Định hướng triển khai các biện pháp bảo mật và hỗ trợ đa ngôn ngữ cho hệ thống.", "Về trang chủ", "/", "Liên hệ", "/Pages/Details/contact"),
+        ["testing-and-quality"] = CreatePage("testing-and-quality", "Kiểm thử và chất lượng", "Đảm bảo tính ổn định", "Kế hoạch kiểm thử chức năng và tiêu chí nghiệm thu trước khi bàn giao sản phẩm.", "Về trang chủ", "/", "Liên hệ", "/Pages/Details/contact"),
 
         ["custom-order"] = CreatePage("custom-order", "Đặt xe theo yêu cầu", "Cấu hình riêng cho bạn", "Hỗ trợ đặt xe theo phiên bản, màu sắc và trang bị theo nhu cầu cá nhân.", "Yêu cầu báo giá", "/Pages/Details/request-a-quote", "Xem xe", "/Cars/Index"),
         ["consignment"] = CreatePage("consignment", "Ký gửi xe", "Giải pháp bán xe thuận tiện", "Hỗ trợ định giá, trưng bày và tìm kiếm khách mua phù hợp cho xe ký gửi.", "Liên hệ ký gửi", "/Pages/Details/contact", "Xem thị trường xe", "/Cars/Index"),
@@ -96,50 +95,11 @@ public class PagesController : Controller
         ConfigureShippingPolicy();
         ConfigurePrivacyPolicy();
         ConfigureTermsAndConditions();
-        ConfigureCourseRequirementPages();
+        ConfigureSecurityAndTestingPages();
     }
 
-    private static void ConfigureCourseRequirementPages()
+    private static void ConfigureSecurityAndTestingPages()
     {
-        if (PageConfigs.TryGetValue("course-requirements", out var requirementPage))
-        {
-            requirementPage.Highlights =
-            [
-                "Có phân quyền người dùng: Admin, Staff, Customer.",
-                "Có Filtering, AJAX và đã bổ sung Paging tại trang Cars.",
-                "Có CRUD, upload ảnh, session/cookies, validation annotations và REST API."
-            ];
-
-            requirementPage.ContentBlocks =
-            [
-                new ContentBlockViewModel
-                {
-                    Heading = "3.1 - 3.3: Chức năng nền tảng",
-                    Description = "Các yêu cầu về kiến trúc và tính năng chính đã được triển khai trong hệ thống.",
-                    Items =
-                    [
-                        "Phân quyền theo vai trò và area quản trị riêng.",
-                        "Lọc theo từ khóa, loại xe, hãng xe; hỗ trợ phân trang danh sách.",
-                        "CRUD xe trong khu vực Admin, upload ảnh đại diện xe.",
-                        "Session/cookies cho đăng nhập, ghi nhớ email.",
-                        "Validation thông qua DataAnnotations trên model.",
-                        "Các API controller theo mô hình RESTFUL."
-                    ]
-                },
-                new ContentBlockViewModel
-                {
-                    Heading = "3.4 - 3.5: Hướng hoàn thiện",
-                    Description = "Các hạng mục nên tiếp tục bổ sung để tăng mức hoàn chỉnh học phần.",
-                    Items =
-                    [
-                        "Bổ sung bộ kiểm thử tự động cho Controller/API.",
-                        "Tăng cường bảo mật: anti-forgery, policy, logging, rate limit.",
-                        "Quốc tế hóa giao diện bằng resource file và chọn ngôn ngữ."
-                    ]
-                }
-            ];
-        }
-
         if (PageConfigs.TryGetValue("security-and-i18n", out var securityPage))
         {
             securityPage.ContentBlocks =
