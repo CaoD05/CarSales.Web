@@ -31,17 +31,19 @@ dotnet restore
 ```
 
 ### 4. Create and Migrate the Database
-Optional (if SQL script not found): Generate a SQL script from the Entity Framework Core migrations and execute it using SQL Server Management Studio (SSMS):
+A database script is included in the project for your convenience. To set up the database:
+1. Open SQL Server Management Studio (SSMS).
+2. Connect to your SQL Server instance.
+3. Create an empty database named `CarSalesDB`.
+4. Open the included SQL script file in SSMS.
+5. Execute the script against the `CarSalesDB` database to create the required schema and tables.
+
+**Optional (if the SQL script is missing or you want to generate a new one):** You can generate a SQL script from the Entity Framework Core migrations yourself:
 ```bash
 dotnet tool install --global dotnet-ef  # Run only if you haven't installed EF Core tools globally
 dotnet ef migrations script -o database_script.sql
 ```
-Next:
-1. Open SQL Server Management Studio (SSMS).
-2. Connect to your SQL Server instance.
-3. Create an empty database named `CarSalesDB`.
-4. Open the generated `database_script.sql` file in SSMS.
-5. Execute the script against the `CarSalesDB` database to create the required schema and tables.
+*(Once generated, execute this script in SSMS following the steps 1-5 above).*
 
 ### 5. Build and Run the Application
 Start the application from your terminal:
