@@ -1,0 +1,84 @@
+@model List<CarSales.Web.Models.PurchaseRequest>
+
+@{
+    ViewData["Title"] = "Xử lý yêu cầu mua";
+    var selectedStatus = ViewBag.Status as string;
+}
+
+<div class="container py-4">
+    <h2 class="mb-3">Xử lý yêu cầu mua</h2>
+
+    <form method="get" asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="New" selected="@(selectedStatus == "New")">New</option>
+                <option value="Processing" selected="@(selectedStatus == "Processing")">Processing</option>
+                <option value="Completed" selected="@(selectedStatus == "Completed")">Completed</option>
+                <option value="Cancelled" selected="@(selectedStatus == "Cancelled")">Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-8 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+            <a asp-area="Staff" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-dark">Dashboard</a>
+        </div>
+    </form>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Không có yêu cầu mua.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Khách hàng</th>
+                        <th>Xe</th>
+                        <th>Thông tin liên hệ</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model)
+                    {
+                        <tr>
+                            <td>@request.RequestId</td>
+                            <td>@request.FullName</td>
+                            <td>@request.Car?.CarName</td>
+                            <td>
+                                <div>@request.Email</div>
+                                <div>@request.Phone</div>
+                            </td>
+                            <td>@request.Message</td>
+                            <td><span class="badge bg-info text-dark">@request.Status</span></td>
+                            <td>
+                                <form method="post" asp-area="Staff" asp-controller="PurchaseRequests" asp-action="UpdateStatus" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@request.RequestId" />
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="New" selected="@(request.Status == "New")">New</option>
+                                        <option value="Processing" selected="@(request.Status == "Processing")">Processing</option>
+                                        <option value="Completed" selected="@(request.Status == "Completed")">Completed</option>
+                                        <option value="Cancelled" selected="@(request.Status == "Cancelled")">Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

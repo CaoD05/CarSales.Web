@@ -1,0 +1,351 @@
+﻿@model CarSales.Web.ViewModels.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
+    var heroCars = Model.HeroCars ?? new List<CarSales.Web.Models.Car>();
+
+    var heroItems = new[]
+    {
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776355413/13335504_1280_720_24fps_qwu64i.mp4", Title = "Porsche", Subtitle = "911 Carrera 4S" },
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776355414/13684270_1280_720_24fps_zg8wup.mp4", Title = "Ferrari", Subtitle = "296 GTB" },
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776355413/13171245_1280_720_60fps_nv3rr5.mp4", Title = "Ferrari", Subtitle = "488 GTB" },
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776355413/13103344_1280_720_60fps_ckn1fj.mp4", Title = "BMW", Subtitle = "E92 M3" },
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776357514/13796124-hd_1280_720_24fps_yew7pk.mp4", Title = "Nissan", Subtitle = "350Z" },
+        new { Video = "https://res.cloudinary.com/du6xqz29n/video/upload/q_auto/f_auto/v1776468622/4632304-hd_1280_720_25fps_ky5d4d.mp4", Title = "Lamborghini", Subtitle = "Huracan" },
+    };
+
+    string NormalizeValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+    }
+
+    var selectedCarTypeId = Model.SelectedCarTypeId;
+}
+
+<section class="hero hero-slider" data-hero-slider>
+    <div class="hero-slider-track" aria-hidden="true">
+        @for (var i = 0; i < heroItems.Length; i++)
+            {
+                var normalizedHeroTitle = NormalizeValue(heroItems[i].Title);
+                var normalizedHeroSubtitle = NormalizeValue(heroItems[i].Subtitle);
+                var heroCar = heroCars.FirstOrDefault(x =>
+                    (!string.IsNullOrWhiteSpace(x.CarName) && x.CarName.Contains(heroItems[i].Subtitle, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Brand != null && x.Brand.BrandName.Equals(heroItems[i].Title, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(x.CarName) && heroItems[i].Subtitle.Contains(x.CarName, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(x.CarName) &&
+                     (NormalizeValue(x.CarName).Contains(normalizedHeroSubtitle, StringComparison.Ordinal) ||
+                      normalizedHeroSubtitle.Contains(NormalizeValue(x.CarName), StringComparison.Ordinal))) ||
+                    (x.Brand != null && NormalizeValue(x.Brand.BrandName) == normalizedHeroTitle));
+                <div class="hero-slide @(i == 0 ? "is-active" : string.Empty)" data-hero-slide>
+                    <video class="hero-video" autoplay muted loop playsinline preload="metadata">
+                        <source src="@heroItems[i].Video" type="video/mp4" />
+                    </video>
+                    <div class="hero-text-overlay">
+                        <h2 class="hero-title">@heroItems[i].Title</h2>
+                        <p class="hero-subtitle">@heroItems[i].Subtitle</p>
+                        @if (heroCar != null)
+                        {
+                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@heroCar.CarId" class="btn hero-btn">Tìm hiểu thêm</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Cars" asp-action="Index" class="btn hero-btn">Tìm hiểu thêm</a>
+                        }
+                    </div>
+                </div>
+            }
+    </div>
+
+    <div class="hero-video-overlay" aria-hidden="true"></div>
+
+    <button class="hero-nav hero-nav-prev" type="button" aria-label="Previous hero" data-hero-prev>
+        <span aria-hidden="true">&#10094;</span>
+    </button>
+    <button class="hero-nav hero-nav-next" type="button" aria-label="Next hero" data-hero-next>
+        <span aria-hidden="true">&#10095;</span>
+    </button>
+
+    <div class="hero-content">
+    </div>
+</section>
+
+<div class="cmp-kba">
+    <div class="kba-units">
+        <a class="kba-unit" asp-controller="Pages" asp-action="Details" asp-route-slug="build-and-price">
+            <img src="/uploads/img/car.png" alt="" class="kba-icon">
+            <span class="kba-text">Chọn xe &amp; Báo giá</span>
+            <span class="kba-arrow">&#10095;</span>
+        </a>
+        <a class="kba-unit" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive">
+            <img src="/uploads/img/wheel.png" alt="" class="kba-icon">
+            <span class="kba-text">Lái thử</span>
+            <span class="kba-arrow">&#10095;</span>
+        </a>
+        <a class="kba-unit" asp-controller="Pages" asp-action="Details" asp-route-slug="request-a-quote">
+            <img src="/uploads/img/car-loan.png" alt="" class="kba-icon">
+            <span class="kba-text">Báo giá</span>
+            <span class="kba-arrow">&#10095;</span>
+        </a>
+    </div>
+</div>
+
+<section class="discover-section">
+    <div class="container">
+        <div class="discover-header">
+            <p class="discover-kicker">DISCOVER</p>
+            <h2 class="discover-title">Xe mới về showroom</h2>
+        </div>
+
+        <div class="discover-grid">
+            @if (Model.DiscoverCars.Any())
+            {
+                foreach (var car in Model.DiscoverCars)
+                {
+                    var thumb = string.IsNullOrWhiteSpace(car.Thumbnail) ? "/uploads/img/car.png" : car.Thumbnail;
+                    <article class="discover-card">
+                        <a class="discover-image-link" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
+                            <img src="@thumb" alt="@car.CarName" class="discover-image" loading="eager" decoding="async" fetchpriority="high" />
+                        </a>
+                        <div class="discover-card-body">
+                            <h3 class="discover-name">
+                                <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">@car.CarName</a>
+                            </h3>
+                            <p class="discover-price">Chỉ từ @string.Format("{0:N0}", car.Price) VNĐ</p>
+                            <a class="btn discover-btn" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">Khám phá</a>
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="discover-empty">Hiện chưa có xe mới để khám phá.</div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="car-explore-section" id="car-explore-section">
+    <div class="container">
+        <h2 class="car-explore-title">KHÁM PHÁ CÁC DÒNG XE</h2>
+
+        <div class="car-type-tabs">
+            @foreach (var carType in Model.CarTypes)
+            {
+                <a href="#"
+                   data-url="@Url.Action("GetCarsByType", "Home", new { carTypeId = carType.CarTypeId })"
+                   class="car-type-tab @(selectedCarTypeId == carType.CarTypeId ? "is-active" : string.Empty)"
+                   data-car-type-link>
+                    @carType.TypeName.ToUpper()
+                </a>
+            }
+        </div>
+
+        <div class="car-home-grid" data-car-home-grid>
+            @await Html.PartialAsync("_CarExploreGrid", Model.Cars)
+        </div>
+    </div>
+</section>
+
+
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">Tại Sao UTC Car Là Địa Chỉ Đáng Tin Cậy?</h2>
+        <div class="grid-4">
+            <div class="feature-item">
+                <h3>Pháp lý rõ ràng</h3>
+                <p>Cam kết xe cung cấp tới khách hàng đều có đầy đủ hồ sơ pháp lý rõ ràng, sang tên nhanh gọn.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Kiểm định khắt khe</h3>
+                <p>Toàn bộ xe nhập về showroom đều được kiểm định bởi chuyên gia hơn 10 năm kinh nghiệm.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Giao xe toàn quốc</h3>
+                <p>Hỗ trợ xem xe và giao xe tận nơi trên toàn quốc bởi đội ngũ nhân viên UTC Car.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Trả góp lên tới 70%</h3>
+                <p>Sở hữu xe chỉ từ 30% giá trị với thủ tục trả góp ngân hàng nhanh chóng.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model.IsLoggedIn)
+{
+    <section class="favorite-section">
+        <div class="container">
+            <h2 class="section-title">Xe yêu thích của bạn</h2>
+            @if (Model.FavoriteCars.Any())
+            {
+                <div class="favorite-grid">
+                    @foreach (var favoriteCar in Model.FavoriteCars)
+                    {
+                        var favoriteThumb = string.IsNullOrWhiteSpace(favoriteCar.Thumbnail) ? "/uploads/img/car.png" : favoriteCar.Thumbnail;
+                        <article class="favorite-card">
+                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@favoriteCar.CarId">
+                                <img src="@favoriteThumb" alt="@favoriteCar.CarName" class="favorite-card-image" />
+                            </a>
+                            <div class="favorite-card-body">
+                                <h3>
+                                    <a asp-controller="Cars" asp-action="Details" asp-route-id="@favoriteCar.CarId">@favoriteCar.CarName</a>
+                                </h3>
+                                <p>@favoriteCar.Brand?.BrandName · @favoriteCar.CarType?.TypeName</p>
+                                <p class="favorite-card-price">@favoriteCar.Price.ToString("N0") VNĐ</p>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="favorite-empty">Bạn chưa có xe yêu thích nào.</div>
+            }
+        </div>
+    </section>
+}
+
+
+<section class="container" style="padding-top: 30px">
+    <h2 class="section-title" style="text-shadow: 1px 1px 1px rgba(0,0,0,0.3);">Tin Tức Ô Tô st</h2>
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-img" style="background: url('https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500&q=80') center/cover;"></div>
+            <div class="card-body">
+                <h3>Top 10 xe hybrid bán chạy nhất</h3>
+                <p>Xu hướng tiêu dùng đang thay đổi rõ rệt trong năm nay.</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-img" style="background: url('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500&q=80') center/cover;"></div>
+            <div class="card-body">
+                <h3>Toyota Land Cruiser 300 Hybrid</h3>
+                <p>Mạnh mẽ, tiết kiệm bước sang kỷ nguyên mới.</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-img" style="background: url('https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=500&q=80') center/cover;"></div>
+            <div class="card-body">
+                <h3>Lexus ES 2026 trình làng</h3>
+                <p>Diện mạo hoàn toàn mới với các nâng cấp công nghệ đỉnh cao.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<button type="button" class="scroll-top-btn" id="scrollTopBtn" aria-label="Lên đầu trang">
+    ↑
+</button>
+
+
+@section Scripts {
+    @{await Html.PartialAsync("_ValidationScriptsPartial");}
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('[data-car-type-link]');
+            const grid = document.querySelector('[data-car-home-grid]');
+            const section = document.getElementById('car-explore-section');
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            let upwardAttempts = 0;
+            let upwardAttemptTimeout;
+            let touchStartY = 0;
+
+            if (scrollTopBtn) {
+                function registerUpwardAttempt() {
+                    upwardAttempts += 1;
+
+                    if (upwardAttemptTimeout) {
+                        clearTimeout(upwardAttemptTimeout);
+                    }
+
+                    upwardAttemptTimeout = setTimeout(function () {
+                        upwardAttempts = 0;
+                    }, 900);
+
+                    if (upwardAttempts >= 2 && window.scrollY > 200) {
+                        scrollTopBtn.classList.add('is-visible');
+                        upwardAttempts = 0;
+                    }
+                }
+
+                window.addEventListener('wheel', function (event) {
+                    if (event.deltaY < 0) {
+                        registerUpwardAttempt();
+                    } else {
+                        upwardAttempts = 0;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchstart', function (event) {
+                    if (event.touches.length) {
+                        touchStartY = event.touches[0].clientY;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchmove', function (event) {
+                    if (!event.touches.length) {
+                        return;
+                    }
+
+                    const currentY = event.touches[0].clientY;
+                    if (currentY > touchStartY + 12) {
+                        registerUpwardAttempt();
+                    }
+                    touchStartY = currentY;
+                }, { passive: true });
+
+                window.addEventListener('scroll', function () {
+                    if (window.scrollY < 120) {
+                        scrollTopBtn.classList.remove('is-visible');
+                    }
+                }, { passive: true });
+
+                scrollTopBtn.addEventListener('click', function () {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    scrollTopBtn.classList.remove('is-visible');
+                });
+            }
+
+            if (!tabs.length || !grid || !section) {
+                return;
+            }
+
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', async function (event) {
+                    event.preventDefault();
+
+                    tabs.forEach(function (item) {
+                        item.classList.remove('is-active');
+                    });
+                    tab.classList.add('is-active');
+
+                    const url = tab.dataset.url;
+                    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    grid.innerHTML = await response.text();
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+        });
+
+        // Custom jQuery validation method
+        $.validator.addMethod('phonevu', function (value, element) {
+            return this.optional(element) || /^(0[35789]|09)\d{8}$/.test(value);
+        }, 'Vui lòng nhập số điện thoại hợp lệ');
+
+        // Apply validation rules when the form is submitted
+        $('form').submit(function () {
+            $(this).validate();
+        });
+    </script>
+}

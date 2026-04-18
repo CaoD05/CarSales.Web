@@ -1,0 +1,139 @@
+﻿@model List<CarSales.Web.Models.Car>
+
+@{
+    ViewData["Title"] = "Danh sách xe";
+    ViewData["UseHeroHeader"] = true;
+    var carTypes = ViewBag.CarTypes as List<CarSales.Web.Models.CarType> ?? new List<CarSales.Web.Models.CarType>();
+    var brands = ViewBag.Brands as List<CarSales.Web.Models.Brand> ?? new List<CarSales.Web.Models.Brand>();
+    var selectedCarTypeId = ViewBag.SelectedCarTypeId as int?;
+    var selectedBrandId = ViewBag.SelectedBrandId as int?;
+    var keyword = ViewBag.Keyword as string;
+    var page = ViewBag.Page as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 9;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var startItem = totalItems == 0 ? 0 : ((page - 1) * pageSize) + 1;
+    var endItem = Math.Min(page * pageSize, totalItems);
+}
+
+<section class="hero cars-hero">
+    <img src="~/uploads/img/hyandaihero.jpg" alt="Cars hero banner" class="cars-hero-image" />
+</section>
+
+<section class="cars-page-section">
+    <div class="container">
+        <div class="cars-page-header">
+            <h1>Tìm xe phù hợp</h1>
+            <p>Tìm kiếm theo tên xe, hãng xe và lọc theo loại xe.</p>
+        </div>
+
+        <form method="get" asp-controller="Cars" asp-action="Index" class="cars-filter-form">
+            <div class="cars-filter-grid">
+                <input type="text"
+                       name="keyword"
+                       value="@keyword"
+                       class="form-control"
+                       placeholder="Nhập tên xe hoặc hãng xe..." />
+
+                <select name="carTypeId" class="form-select">
+                    <option value="">Tất cả loại xe</option>
+                    @foreach (var carType in carTypes)
+                    {
+                        if (selectedCarTypeId == carType.CarTypeId)
+                        {
+                            <option value="@carType.CarTypeId" selected>@carType.TypeName</option>
+                        }
+                        else
+                        {
+                            <option value="@carType.CarTypeId">@carType.TypeName</option>
+                        }
+                    }
+                </select>
+
+                <select name="brandId" class="form-select">
+                    <option value="">Tất cả hãng xe</option>
+                    @foreach (var brand in brands)
+                    {
+                        if (selectedBrandId == brand.BrandId)
+                        {
+                            <option value="@brand.BrandId" selected>@brand.BrandName</option>
+                        }
+                        else
+                        {
+                            <option value="@brand.BrandId">@brand.BrandName</option>
+                        }
+                    }
+                </select>
+
+                <button type="submit" class="btn cars-filter-btn">Tìm xe</button>
+                <a asp-controller="Cars" asp-action="Index" class="btn cars-reset-btn">Xóa lọc</a>
+            </div>
+        </form>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="cars-empty">Không tìm thấy xe phù hợp với bộ lọc hiện tại.</div>
+        }
+        else
+        {
+            <div class="cars-result-count">Hiển thị <strong>@startItem-@endItem</strong> trên tổng <strong>@totalItems</strong> xe.</div>
+
+            <div class="cars-grid">
+                @foreach (var car in Model)
+                {
+                    var thumb = string.IsNullOrWhiteSpace(car.Thumbnail) ? "/uploads/img/car.png" : car.Thumbnail;
+
+                    <article class="cars-card">
+                        <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
+                            <img src="@thumb" alt="@car.CarName" class="cars-card-image" />
+                        </a>
+                        <div class="cars-card-body">
+                            <h3>
+                                <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">@car.CarName</a>
+                            </h3>
+                            <p class="cars-card-meta">@car.Brand?.BrandName · @car.CarType?.TypeName</p>
+                            <p class="cars-card-price">@car.Price.ToString("N0") VNĐ</p>
+                            <p class="cars-card-info">Năm @car.Year · @car.Status</p>
+                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId" class="cars-card-link">Xem chi tiết</a>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav class="cars-pagination" aria-label="Phân trang xe">
+                    <a class="cars-page-link @(page == 1 ? "disabled" : string.Empty)"
+                       asp-controller="Cars"
+                       asp-action="Index"
+                       asp-route-page="@(page - 1)"
+                       asp-route-pageSize="@pageSize"
+                       asp-route-keyword="@keyword"
+                       asp-route-carTypeId="@selectedCarTypeId"
+                       asp-route-brandId="@selectedBrandId">&laquo;</a>
+
+                    @for (var i = 1; i <= totalPages; i++)
+                    {
+                        <a class="cars-page-link @(i == page ? "active" : string.Empty)"
+                           asp-controller="Cars"
+                           asp-action="Index"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@pageSize"
+                           asp-route-keyword="@keyword"
+                           asp-route-carTypeId="@selectedCarTypeId"
+                           asp-route-brandId="@selectedBrandId">@i</a>
+                    }
+
+                    <a class="cars-page-link @(page == totalPages ? "disabled" : string.Empty)"
+                       asp-controller="Cars"
+                       asp-action="Index"
+                       asp-route-page="@(page + 1)"
+                       asp-route-pageSize="@pageSize"
+                       asp-route-keyword="@keyword"
+                       asp-route-carTypeId="@selectedCarTypeId"
+                       asp-route-brandId="@selectedBrandId">&raquo;</a>
+                </nav>
+            }
+        }
+    </div>
+</section>

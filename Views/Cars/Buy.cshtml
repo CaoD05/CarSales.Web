@@ -1,0 +1,59 @@
+@model CarSales.Web.ViewModels.CarBuyPageViewModel
+
+@{
+    ViewData["Title"] = $"Mua xe - {Model.Car.CarName}";
+}
+
+<section class="cars-page-section">
+    <div class="container">
+        <div class="cars-page-header">
+            <h1>Mua xe: @Model.Car.CarName</h1>
+            <p>Chọn hình thức gửi ticket để đội ngũ UTC Car xử lý nhanh cho bạn.</p>
+        </div>
+
+        <div class="buy-ticket-grid">
+            <article class="buy-ticket-card">
+                <h3>Yêu cầu mua xe</h3>
+                <p>Gửi ticket yêu cầu mua xe, nhân viên sẽ liên hệ tư vấn và hỗ trợ thủ tục mua xe.</p>
+
+                @if (Model.HasOpenPurchaseRequest)
+                {
+                    <p class="buy-ticket-note">Bạn đang có yêu cầu mua xe đang xử lý cho mẫu xe này.</p>
+                }
+
+                <form asp-controller="Cars" asp-action="CreatePurchaseRequestTicket" method="post" class="buy-ticket-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Car.CarId" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <label class="form-label" for="purchaseMessage">Ghi chú thêm (tuỳ chọn)</label>
+                    <textarea id="purchaseMessage" name="message" class="form-control" rows="3" placeholder="Ví dụ: Tôi muốn tư vấn trả góp 70%..."></textarea>
+                    <button type="submit" class="btn buy-ticket-btn">Tạo ticket yêu cầu mua</button>
+                </form>
+            </article>
+
+            <article class="buy-ticket-card">
+                <h3>Xử lý đặt cọc</h3>
+                <p>Tạo ticket đặt cọc cho xe này. Số tiền gợi ý là <strong>@Model.SuggestedDepositAmount.ToString("N0") VNĐ</strong>.</p>
+
+                @if (Model.HasOpenDeposit)
+                {
+                    <p class="buy-ticket-note">Bạn đang có ticket đặt cọc chờ xác nhận cho mẫu xe này.</p>
+                }
+
+                <form asp-controller="Cars" asp-action="CreateDepositTicket" method="post" class="buy-ticket-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Car.CarId" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <label class="form-label" for="depositNote">Ghi chú thêm (tuỳ chọn)</label>
+                    <textarea id="depositNote" name="note" class="form-control" rows="3" placeholder="Ví dụ: Tôi sẽ chuyển khoản trong hôm nay..."></textarea>
+                    <button type="submit" class="btn buy-ticket-btn secondary">Tạo ticket đặt cọc</button>
+                </form>
+            </article>
+        </div>
+
+        <div class="buy-ticket-actions">
+            <a asp-controller="Cars" asp-action="Details" asp-route-id="@Model.Car.CarId" class="btn cars-reset-btn">Quay lại chi tiết xe</a>
+            <a asp-controller="Cars" asp-action="MyTickets" class="btn cars-filter-btn">Quản lý đặt cọc của người dùng</a>
+        </div>
+    </div>
+</section>

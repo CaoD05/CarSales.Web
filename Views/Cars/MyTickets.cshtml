@@ -1,0 +1,86 @@
+@model CarSales.Web.ViewModels.UserTicketsViewModel
+
+@{
+    ViewData["Title"] = "Quản lý đặt cọc của người dùng";
+}
+
+<section class="cars-page-section">
+    <div class="container">
+        <div class="cars-page-header">
+            <h1>Quản lý đặt cọc của người dùng</h1>
+            <p>Theo dõi các ticket mua xe và ticket đặt cọc của bạn.</p>
+        </div>
+
+        <div class="user-ticket-panel">
+            <h2>Yêu cầu mua xe</h2>
+            @if (!Model.PurchaseRequests.Any())
+            {
+                <div class="cars-empty">Bạn chưa có yêu cầu mua xe nào.</div>
+            }
+            else
+            {
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Xe</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model.PurchaseRequests)
+                            {
+                                <tr>
+                                    <td>#@request.RequestId</td>
+                                    <td>@request.Car?.CarName</td>
+                                    <td>@request.Status</td>
+                                    <td>@request.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="user-ticket-panel">
+            <h2>Ticket đặt cọc</h2>
+            @if (!Model.Deposits.Any())
+            {
+                <div class="cars-empty">Bạn chưa có ticket đặt cọc nào.</div>
+            }
+            else
+            {
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Xe</th>
+                                <th>Số tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thanh toán</th>
+                                <th>Ngày tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var deposit in Model.Deposits)
+                            {
+                                <tr>
+                                    <td>#@deposit.DepositId</td>
+                                    <td>@deposit.Car?.CarName</td>
+                                    <td>@deposit.DepositAmount.ToString("N0") VNĐ</td>
+                                    <td>@deposit.Status</td>
+                                    <td>@deposit.PaymentStatus</td>
+                                    <td>@deposit.DepositDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Staff Dashboard";
+    var latestRequests = ViewBag.LatestRequests as List<CarSales.Web.Models.PurchaseRequest> ?? new List<CarSales.Web.Models.PurchaseRequest>();
+    var latestDeposits = ViewBag.LatestDeposits as List<CarSales.Web.Models.Deposit> ?? new List<CarSales.Web.Models.Deposit>();
+}
+
+<section class="dashboard-page dashboard-staff-page">
+    <div class="container">
+        <div class="dashboard-head">
+            <h2>Dashboard Nhân viên</h2>
+            <p>Theo dõi công việc và xử lý yêu cầu khách hàng.</p>
+        </div>
+
+        <div class="dashboard-stats-grid staff-stats-grid">
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Yêu cầu mua mới</span>
+                <strong class="dashboard-stat-value">@ViewBag.NewRequests</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Yêu cầu đang xử lý</span>
+                <strong class="dashboard-stat-value">@ViewBag.MyProcessingRequests</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Đặt cọc chờ duyệt</span>
+                <strong class="dashboard-stat-value">@ViewBag.WaitingDeposits</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Đặt cọc đã xử lý</span>
+                <strong class="dashboard-stat-value">@ViewBag.MyHandledDeposits</strong>
+            </div>
+        </div>
+
+        <div class="dashboard-actions mb-4">
+            <a class="dashboard-btn primary" asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index">Xử lý yêu cầu mua</a>
+            <a class="dashboard-btn" asp-area="Staff" asp-controller="Deposits" asp-action="Index">Xử lý đặt cọc</a>
+            <a class="dashboard-btn" asp-area="" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+            <a class="dashboard-btn danger" asp-area="" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+        </div>
+
+        <div class="dashboard-panels-grid">
+            <div class="dashboard-panel">
+                <div class="dashboard-panel-head">
+                    <h3>Yêu cầu mua gần đây</h3>
+                    <a asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index">Xem tất cả</a>
+                </div>
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Khách hàng</th>
+                                <th>Xe</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (latestRequests.Any())
+                            {
+                                foreach (var request in latestRequests)
+                                {
+                                    <tr>
+                                        <td>@request.RequestId</td>
+                                        <td>@request.FullName</td>
+                                        <td>@request.Car?.CarName</td>
+                                        <td>@request.Status</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4">Chưa có yêu cầu mua.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="dashboard-panel">
+                <div class="dashboard-panel-head">
+                    <h3>Đặt cọc gần đây</h3>
+                    <a asp-area="Staff" asp-controller="Deposits" asp-action="Index">Xem tất cả</a>
+                </div>
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Khách hàng</th>
+                                <th>Số tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (latestDeposits.Any())
+                            {
+                                foreach (var deposit in latestDeposits)
+                                {
+                                    <tr>
+                                        <td>@deposit.DepositId</td>
+                                        <td>@deposit.User?.FullName</td>
+                                        <td>@deposit.DepositAmount.ToString("N0")</td>
+                                        <td>@deposit.Status</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4">Chưa có dữ liệu đặt cọc.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

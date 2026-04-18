@@ -1,0 +1,22 @@
+﻿@model CarSales.Web.Models.Car
+
+@{
+    ViewData["Title"] = "Xóa xe";
+}
+
+<h2>Xóa xe</h2>
+
+<p>Bạn có chắc muốn xóa xe này không?</p>
+
+<ul>
+    <li><strong>Tên xe:</strong> @Model.CarName</li>
+    <li><strong>Hãng:</strong> @Model.Brand?.BrandName</li>
+    <li><strong>Loại xe:</strong> @Model.CarType?.TypeName</li>
+    <li><strong>Giá:</strong> @Model.Price.ToString("N0")</li>
+</ul>
+
+<form asp-area="Admin" asp-controller="CarsManagement" asp-action="Delete" method="post">
+    <input type="hidden" asp-for="CarId" />
+    <button type="submit">Xóa</button>
+    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Hủy</a>
+</form>

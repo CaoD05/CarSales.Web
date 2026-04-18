@@ -1,0 +1,148 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var accountName = Context.Session.GetString("FullName");
+    var role = Context.Session.GetString("Role");
+    bool isAdmin = role == "Admin";
+    bool isStaff = role == "Staff";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background: #f5f7fc; display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+        .dashboard-wrapper { display: flex; flex-wrap: nowrap; min-height: 100vh; }
+        .dashboard-sidebar { width: 260px; background: var(--dark-bg); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-brand { padding: 20px; font-size: 20px; font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .sidebar-nav { list-style: none; padding: 20px 0; margin: 0; flex-grow: 1; }
+        .sidebar-nav li a { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #ccc; text-decoration: none; transition: background 0.2s, color 0.2s; }
+        .sidebar-nav li a:hover, .sidebar-nav li a.active { background: rgba(250, 203, 1, 0.1); color: var(--primary-color); border-right: 4px solid var(--primary-color); }
+        .sidebar-nav li a i { font-size: 18px; }
+        .dashboard-main { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+        .dashboard-topbar { height: 60px; background: #fff; border-bottom: 1px solid #eaecf0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; }
+        .dashboard-content { padding: 30px; flex-grow: 1; overflow-y: auto; }
+        .user-dropdown .btn { font-weight: 500; color: #111; display: flex; align-items: center; gap: 8px; }
+        
+        .dashboard-page { padding: 0 !important; min-height: auto !important; background: transparent !important; }
+        .dashboard-actions { display: none !important; }
+        .container { max-width: 100% !important; padding: 0 !important; }
+
+        @@media (max-width: 991px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .dashboard-sidebar { width: 100%; height: auto; }
+            .sidebar-brand { padding: 15px 20px; border-bottom: none; }
+            .sidebar-nav { display: flex; overflow-x: auto; padding: 0; background: #111; margin: 0; white-space: nowrap; }
+            .sidebar-nav li { flex-shrink: 0; }
+            .sidebar-nav li a { padding: 15px 20px; border-right: none; border-bottom: 3px solid transparent; gap: 8px; }
+            .sidebar-nav li a:hover, .sidebar-nav li a.active { border-right: none; border-bottom: 3px solid var(--primary-color); background: rgba(250, 203, 1, 0.1); }
+            .dashboard-main { flex-grow: 1; }
+            .dashboard-content { padding: 15px; }
+            .dashboard-topbar { padding: 0 15px; height: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="dashboard-sidebar">
+            <a href="/" class="sidebar-brand">
+                <i class="bi bi-car-front-fill"></i> UTC CAR
+            </a>
+            <ul class="sidebar-nav">
+                @if (isAdmin)
+                {
+                    <li>
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                            <i class="bi bi-speedometer2"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "CarsManagement" ? "active" : "")">
+                            <i class="bi bi-car-front"></i> Quản lý xe
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin" asp-controller="UsersManagement" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "UsersManagement" ? "active" : "")">
+                            <i class="bi bi-people"></i> Quản lý người dùng
+                        </a>
+                    </li>
+                }
+                else if (isStaff)
+                {
+                    <li>
+                        <a asp-area="Staff" asp-controller="Dashboard" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                            <i class="bi bi-speedometer2"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "PurchaseRequests" ? "active" : "")">
+                            <i class="bi bi-journal-text"></i> Yêu cầu mua xe
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Staff" asp-controller="Deposits" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Deposits" ? "active" : "")">
+                            <i class="bi bi-cash-coin"></i> Xử lý đặt cọc
+                        </a>
+                    </li>
+                }
+                <li>
+                    <a asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-house-door"></i> Về trang chủ
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h5 class="m-0 text-muted">@ViewData["Title"]</h5>
+                <div class="dropdown user-dropdown">
+                    <button class="btn btn-link text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle fs-5" style="color: var(--primary-color);"></i> <span class="account-name">@accountName</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li><a class="dropdown-item text-danger" asp-area="" asp-controller="Account" asp-action="Logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
+            <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var toastEl = document.getElementById('successToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+            });
+        </script>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,389 @@
+﻿@using Microsoft.AspNetCore.Http
+@using CarSales.Web.Data
+@inject ApplicationDbContext DbContext
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - UTC Car</title>
+    <script type="importmap"></script>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <!-- TinyMCE Rich Text Editor -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+</head>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isHomePage = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    var useHeroHeader = isHomePage || (ViewData["UseHeroHeader"] as bool? == true);
+    var hideHeaderFooter = ViewData["HideHeaderFooter"] as bool? == true || string.Equals(ViewContext.RouteData.Values["area"]?.ToString(), "Admin", StringComparison.OrdinalIgnoreCase) || string.Equals(ViewContext.RouteData.Values["area"]?.ToString(), "Staff", StringComparison.OrdinalIgnoreCase);
+    var accountName = Context.Session.GetString("FullName");
+    var role = Context.Session.GetString("Role");
+    var isLoggedIn = !string.IsNullOrWhiteSpace(accountName);
+    var productCarTypes = DbContext.CarTypes
+        .OrderBy(x => x.TypeName)
+        .ToList();
+    var productCars = DbContext.Cars
+        .Where(x => x.Status == "Available")
+        .OrderBy(x => x.Price)
+        .Select(x => new { x.CarId, x.CarName, x.Price, x.CarTypeId })
+        .ToList();
+    var headerKeyword = Context.Request.Query["keyword"].ToString();
+}
+<body class="@(useHeroHeader ? "is-home" : "not-home")">
+
+    @if (!hideHeaderFooter)
+    {
+        <header class="ford-style-header dark-theme ultra-thin">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <img src="~/uploads/img/logoUTC.png" alt="UTC CAR Logo" height="30" class="me-2" />
+                    <div class="logo-text d-flex flex-column justify-content-center">
+                        <h1 class="m-0 fw-bold text-uppercase" style="font-size: 20px; line-height: 1;">UTC CAR</h1>
+                    </div>
+                </a>
+
+                <div class="d-flex align-items-center gap-3 ms-auto me-3 d-lg-none">
+                    <button class="btn btn-link text-white p-0 search-icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                        </svg>
+                    </button>
+
+                    <div class="dropdown account-dropdown">
+                        <button class="btn btn-link text-white p-0 account-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                <path d="M14 14s-1-4-6-4-6 4-6 4 1 1 6 1 6-1 6-1z" />
+                            </svg>
+                        </button>
+
+                        @if (isLoggedIn)
+                        {
+                            <ul class="dropdown-menu dropdown-menu-end account-menu">
+                                @if (role == "Admin")
+                                {
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard Admin</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Quản lý xe</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="UsersManagement" asp-action="Index">Quản lý người dùng</a></li>
+                                }
+                                else if (role == "Staff")
+                                {
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="Dashboard" asp-action="Index">Dashboard Nhân viên</a></li>
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index">Xử lý yêu cầu mua</a></li>
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="Deposits" asp-action="Index">Xử lý đặt cọc</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Cars" asp-action="MyTickets">Quản lý Đặt cọc</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="account-profile">Tài khoản</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive-booking">Đăng ký lái thử</a></li>
+                                }
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <ul class="dropdown-menu dropdown-menu-end account-menu">
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Login">Đăng nhập</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Register">Đăng ký</a></li>
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                <button class="navbar-toggler p-1 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" style="width: 1.2em; height: 1.2em;"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-4 fw-semibold">
+                        <li class="nav-item">
+                            <button class="nav-link text-uppercase px-3 product-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#productsCollapse" aria-expanded="false" aria-controls="productsCollapse">
+                                Sản phẩm
+                            </button>
+                        </li>
+                        <li class="nav-item dropdown service-nav-item">
+                            <a class="nav-link px-3 service-menu-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                MUA XE
+                            </a>
+                            <ul class="dropdown-menu service-menu">
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="online-deposit">Đặt cọc trực tuyến</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="available-cars">Kiểm tra xe có sẵn</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="build-and-price">Lựa chọn mẫu xe và báo giá</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="price-list">Bảng giá</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="parts-and-accessories">Phụ kiện &amp; Phụ tùng</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive">Đăng ký lái thử xe</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown service-nav-item">
+                            <a class="nav-link px-3 service-menu-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                DỊCH VỤ &amp; HỖ TRỢ
+                            </a>
+                            <ul class="dropdown-menu service-menu">
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="services">Dịch Vụ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-booking">Đặt lịch Dịch vụ trực tuyến</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-estimate">Báo Giá Tạm tính Chi phí Dịch vụ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="quick-maintenance-process">Quy trình bảo dưỡng nhanh</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="maintenance-schedule">Lịch bảo dưỡng định kỳ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-centers">Cơ sở bảo hành bảo dưỡng</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="door-to-door-service">Nhận &amp; giao xe tận nơi miễn phí</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="extended-warranty-terms">Chứng nhận và Điều khoản hợp đồng bảo hành mở rộng</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="owners">Chủ xe</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="contact">Liên hệ</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="d-none d-lg-flex align-items-center gap-3 ms-auto">
+                    <button class="btn btn-link text-white p-0 search-icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                        </svg>
+                    </button>
+
+                    <div class="dropdown account-dropdown">
+                        <button class="btn btn-link text-white p-0 account-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                <path d="M14 14s-1-4-6-4-6 4-6 4 1 1 6 1 6-1 6-1z" />
+                            </svg>
+                            @if (isLoggedIn)
+                            {
+                                <span class="account-name">@accountName</span>
+                            }
+                        </button>
+
+                        @if (isLoggedIn)
+                        {
+                            <ul class="dropdown-menu dropdown-menu-end account-menu">
+                                @if (role == "Admin")
+                                {
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard Admin</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Quản lý xe</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-controller="UsersManagement" asp-action="Index">Quản lý người dùng</a></li>
+                                }
+                                else if (role == "Staff")
+                                {
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="Dashboard" asp-action="Index">Dashboard Nhân viên</a></li>
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index">Xử lý yêu cầu mua</a></li>
+                                    <li><a class="dropdown-item" asp-area="Staff" asp-controller="Deposits" asp-action="Index">Xử lý đặt cọc</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Cars" asp-action="MyTickets">Quản lý Đặt cọc</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="account-profile">Tài khoản</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive-booking">Đăng ký lái thử</a></li>
+                                }
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <ul class="dropdown-menu dropdown-menu-end account-menu">
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Login">Đăng nhập</a></li>
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Register">Đăng ký</a></li>
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="collapse products-bar-collapse" id="productsCollapse">
+            <div class="container py-3 py-lg-4">
+                <div class="products-menu-grid">
+                    <div class="products-menu-types">
+                        <a class="products-type-link products-type-link-all is-active" data-products-type="all" asp-controller="Cars" asp-action="Index">Tất cả mẫu xe</a>
+                        @foreach (var carType in productCarTypes)
+                        {
+                            <a class="products-type-link" data-products-type="@carType.CarTypeId" asp-controller="Cars" asp-action="Index" asp-route-carTypeId="@carType.CarTypeId">@carType.TypeName</a>
+                        }
+                    </div>
+
+                    <div class="products-menu-preview">
+                        <div class="products-preview-pane is-active" data-products-pane="all">
+                            @if (productCars.Any())
+                            {
+                                foreach (var car in productCars.Take(8))
+                                {
+                                    <a class="products-car-item" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
+                                        <span class="products-car-name">@car.CarName</span>
+                                        <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <p class="products-empty">Chưa có xe khả dụng.</p>
+                            }
+                        </div>
+
+                        @foreach (var carType in productCarTypes)
+                        {
+                            var typeCars = productCars.Where(x => x.CarTypeId == carType.CarTypeId).Take(8).ToList();
+                            <div class="products-preview-pane" data-products-pane="@carType.CarTypeId">
+                                @if (typeCars.Any())
+                                {
+                                    foreach (var car in typeCars)
+                                    {
+                                        <a class="products-car-item" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
+                                            <span class="products-car-name">@car.CarName</span>
+                                            <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="products-empty">Chưa có xe trong dòng @carType.TypeName.</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapse search-bar-collapse" id="searchCollapse">
+            <div class="container py-2">
+                <form method="get" asp-controller="Cars" asp-action="Index" class="d-flex w-100 position-relative mx-auto" style="max-width: 800px;">
+                    <input id="searchInput" name="keyword" value="@headerKeyword" class="form-control border-0 rounded-pill bg-white search-input" type="search" placeholder="Tìm kiếm loại xe, dòng xe..." aria-label="Search">
+                    <button class="btn text-dark position-absolute top-50 translate-middle-y search-submit-btn p-1" type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+    }
+
+    <div class="page-wrapper">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
+            <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var toastEl = document.getElementById('successToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+            });
+        </script>
+    }
+
+
+    @if (!hideHeaderFooter)
+    {
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4>CÔNG TY CỔ PHẦN UTC  CAR</h4>
+                    <ul>
+                        <li><strong>Trụ sở:</strong> 3 Cầu Giấy, Ngọc Khánh, Láng, Hà Nội</li>
+                        <li><strong>Chi nhánh 2:</strong> 450-451 Lê Văn Việt, Phường Tăng Nhơn Phú A, Tăng Nhơn Phú A, Tăng Nhơn Phú, Hồ Chí Minh</li>
+                        <li><strong>Email:</strong> info@utc-car.vn</li>
+                        <li><strong>Hotline:</strong> 0000.000.000 | 0000.000.000</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>CHÍNH SÁCH</h4>
+                    <ul>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="payment-policy">Chính sách thanh toán</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="warranty-policy">Chính sách bảo hành</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="shipping-policy">Chính sách giao nhận vận chuyển</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="privacy-policy">Chính sách bảo mật thông tin</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="terms-and-conditions">Điều kiện và điều khoản</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>TIỆN ÍCH CHO BẠN</h4>
+                    <ul>
+                        <li><a asp-controller="Cars" asp-action="Index">Tìm xe</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="custom-order">Đặt xe theo yêu cầu</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="consignment">Ký gửi xe</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="trade-in">Đổi xe</a></li>
+                        <li><a asp-controller="Pages" asp-action="Details" asp-route-slug="course-requirements">Đối chiếu yêu cầu học phần</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="socialUpdate">
+                <div class="socialWrapper">
+                    <div class="title">
+                        <p>Theo dõi UTC Car</p>
+                    </div>
+                    <div class="socialLinkHolder">
+                        <a href="https://www.facebook.com/FordVietnam/" class="social_label close_overlay" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8.94 6.5H8V5.5c0-.3.2-.5.5-.5h.5V3H8a2 2 0 0 0-2 2v1.5H5V8h1v5h2V8h1.5l.44-1.5z" />
+                            </svg>
+                        </a>
+
+                        <a href="https://www.youtube.com/channel/UCJsYIyQy_mMDY-M3WBI_oWg" class="social_label close_overlay" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+                            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm6.79 2.093A.5.5 0 0 0 6 6.5v3a.5.5 0 0 0 .79.407l2.5-1.5a.5.5 0 0 0 0-.814l-2.5-1.5z" />
+                            </svg>
+                        </a>
+
+                        <a href="https://www.instagram.com/fordvietnam/" class="social_label close_overlay" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.95 3.95 0 0 0-1.417.923A3.95 3.95 0 0 0 .42 2.76c-.198.509-.332 1.09-.372 1.943C.01 5.556 0 5.829 0 8c0 2.171.01 2.444.048 3.297.04.853.174 1.434.372 1.943.205.527.478.974.923 1.417.444.445.89.718 1.417.923.509.198 1.09.332 1.943.372C5.556 15.99 5.829 16 8 16c2.171 0 2.444-.01 3.297-.048.853-.04 1.434-.174 1.943-.372a3.95 3.95 0 0 0 1.417-.923 3.95 3.95 0 0 0 .923-1.417c.198-.509.332-1.09.372-1.943C15.99 10.444 16 10.171 16 8c0-2.171-.01-2.444-.048-3.297-.04-.853-.174-1.434-.372-1.943A3.95 3.95 0 0 0 13.24.42c-.509-.198-1.09-.332-1.943-.372C10.444.01 10.171 0 8 0zm0 1.44c2.134 0 2.389.008 3.232.046.78.036 1.204.166 1.486.276.373.145.64.318.92.598.28.28.453.547.598.92.11.282.24.706.276 1.486.038.843.046 1.098.046 3.232s-.008 2.389-.046 3.232c-.036.78-.166 1.204-.276 1.486a2.5 2.5 0 0 1-.598.92 2.5 2.5 0 0 1-.92.598c-.282.11-.706.24-1.486.276-.843.038-1.098.046-3.232.046s-2.389-.008-3.232-.046c-.78-.036-1.204-.166-1.486-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.598-.92c-.11-.282-.24-.706-.276-1.486C1.448 10.389 1.44 10.134 1.44 8s.008-2.389.046-3.232c.036-.78.166-1.204.276-1.486.145-.373.318-.64.598-.92.28-.28.547-.453.92-.598.282-.11.706-.24 1.486-.276C5.611 1.448 5.866 1.44 8 1.44z" />
+                                <path d="M8 4.108a3.892 3.892 0 1 0 0 7.784 3.892 3.892 0 0 0 0-7.784zm0 6.344a2.452 2.452 0 1 1 0-4.904 2.452 2.452 0 0 1 0 4.904zM12.05 3.636a.91.91 0 1 0 0 1.82.91.91 0 0 0 0-1.82z" />
+                            </svg>
+                        </a>
+
+                        <a href="https://zalo.me/4358090117093994666" class="social_label close_overlay" aria-label="Zalo" target="_blank" rel="noopener noreferrer">
+                            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414L1 14.414V2a1 1 0 0 1 1-1h12zM2 2v10l2-2h10V2H2z" />
+                                <path d="M3 4.5A.5.5 0 0 1 3.5 4h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2A.5.5 0 0 1 3.5 6h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 2A.5.5 0 0 1 3.5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z" />
+                            </svg>
+                        </a>
+
+                        <a href="#" class="social_label close_overlay" aria-label="TikTok">
+                            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M6 13c0 1.105-.895 2-2 2s-2-.895-2-2 .895-2 2-2c.365 0 .707.098 1 .268V4a1 1 0 0 1 1-1h2v2h2v2H8v6z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+                
+            <div class="footer-bottom">
+                <p>Đại Diện: Ông Lê Xuân Thái. Mã số thuế: 000000000 cấp tại Phòng đăng ký kinh doanh Sở Kế hoạch và Đầu tư Thành phố Hà Nội.</p>
+                <p>Copyright 2026 &copy; UTC-CAR. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    }
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html></html>

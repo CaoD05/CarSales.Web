@@ -1,0 +1,22 @@
+@model IEnumerable<CarSales.Web.Models.Car>
+
+@if (Model.Any())
+{
+    foreach (var car in Model)
+    {
+        var thumb = string.IsNullOrWhiteSpace(car.Thumbnail) ? "/uploads/img/car.png" : car.Thumbnail;
+        <article class="car-home-card">
+            <a class="car-home-image-link" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
+                <img src="@thumb" alt="@car.CarName" class="car-home-image" loading="lazy" />
+            </a>
+            <h3 class="car-home-name">
+                <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">@car.CarName.ToUpper()</a>
+            </h3>
+            <p class="car-home-price">Chỉ từ @string.Format("{0:N0}", car.Price) VNĐ</p>
+        </article>
+    }
+}
+else
+{
+    <div class="car-home-empty">Hiện chưa có xe trong dòng này.</div>
+}

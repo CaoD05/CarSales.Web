@@ -1,0 +1,54 @@
+@model CarSales.Web.ViewModels.ContentPageViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="content-page-section">
+    <div class="container">
+        <div class="content-page-wrap">
+            <p class="content-page-kicker">UTC CAR</p>
+            <h1 class="content-page-title">@Model.Title</h1>
+            <p class="content-page-intro">@Model.Intro</p>
+            <p class="content-page-description">@Model.Description</p>
+
+            @if (Model.Highlights.Any())
+            {
+                <ul class="content-page-highlights">
+                    @foreach (var item in Model.Highlights)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+
+            @if (Model.ContentBlocks.Any())
+            {
+                <div class="content-page-blocks">
+                    @foreach (var block in Model.ContentBlocks)
+                    {
+                        <article class="content-block-card">
+                            <h2 class="content-block-title">@block.Heading</h2>
+                            <p class="content-block-description">@block.Description</p>
+
+                            @if (block.Items.Any())
+                            {
+                                <ul class="content-block-list">
+                                    @foreach (var point in block.Items)
+                                    {
+                                        <li>@point</li>
+                                    }
+                                </ul>
+                            }
+                        </article>
+                    }
+                </div>
+            }
+
+            <div class="content-page-actions">
+                <a class="content-page-btn primary" href="@Model.PrimaryButtonUrl">@Model.PrimaryButtonText</a>
+                <a class="content-page-btn secondary" href="@Model.SecondaryButtonUrl">@Model.SecondaryButtonText</a>
+            </div>
+        </div>
+    </div>
+</section>

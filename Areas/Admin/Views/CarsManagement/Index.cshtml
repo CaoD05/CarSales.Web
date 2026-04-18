@@ -1,0 +1,80 @@
+﻿@model List<CarSales.Web.Models.Car>
+
+@{
+    ViewData["Title"] = "Quản lý xe";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0" style="color: #0f2f7a; font-weight: 600;">Quản lý xe</h2>
+    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Create" class="dashboard-btn primary px-3 py-2">
+        <i class="bi bi-plus-lg me-1"></i> Thêm xe mới
+    </a>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="dashboard-panel p-4 text-center text-muted">
+        <i class="bi bi-car-front fs-1 mb-2"></i>
+        <p class="m-0">Chưa có dữ liệu xe.</p>
+    </div>
+}
+else
+{
+    <div class="dashboard-panel">
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Tên xe</th>
+                        <th>Hãng</th>
+                        <th>Loại xe</th>
+                        <th>Giá</th>
+                        <th>Năm</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var car in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-dark">@car.CarName</td>
+                            <td>@car.Brand?.BrandName</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @car.CarType?.TypeName
+                                </span>
+                            </td>
+                            <td class="text-primary fw-semibold">@car.Price.ToString("N0")</td>
+                            <td>@car.Year</td>
+                            <td>
+                                @if (car.Status == "Available")
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">@car.Status</span>
+                                }
+                                else if (car.Status == "Sold")
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">@car.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">@car.Status</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Edit" asp-route-id="@car.CarId" class="btn btn-sm btn-outline-primary px-3 rounded-pill" title="Sửa">
+                                        <i class="bi bi-pencil-square"></i> Sửa
+                                    </a>
+                                    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Delete" asp-route-id="@car.CarId" class="btn btn-sm btn-outline-danger px-3 rounded-pill" title="Xóa">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

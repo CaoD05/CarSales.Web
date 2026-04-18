@@ -1,0 +1,81 @@
+@model List<CarSales.Web.Models.Deposit>
+
+@{
+    ViewData["Title"] = "Xử lý đặt cọc";
+    var selectedStatus = ViewBag.Status as string;
+}
+
+<div class="container py-4">
+    <h2 class="mb-3">Xử lý đặt cọc</h2>
+
+    <form method="get" asp-area="Staff" asp-controller="Deposits" asp-action="Index" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="WaitingConfirm" selected="@(selectedStatus == "WaitingConfirm")">WaitingConfirm</option>
+                <option value="Pending" selected="@(selectedStatus == "Pending")">Pending</option>
+                <option value="Confirmed" selected="@(selectedStatus == "Confirmed")">Confirmed</option>
+                <option value="Rejected" selected="@(selectedStatus == "Rejected")">Rejected</option>
+            </select>
+        </div>
+        <div class="col-md-8 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a asp-area="Staff" asp-controller="Deposits" asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+            <a asp-area="Staff" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-dark">Dashboard</a>
+        </div>
+    </form>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Không có giao dịch đặt cọc.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Khách hàng</th>
+                        <th>Xe</th>
+                        <th>Số tiền</th>
+                        <th>Thanh toán</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var deposit in Model)
+                    {
+                        <tr>
+                            <td>@deposit.DepositId</td>
+                            <td>@deposit.User?.FullName</td>
+                            <td>@deposit.Car?.CarName</td>
+                            <td>@deposit.DepositAmount.ToString("N0") VNĐ</td>
+                            <td>@deposit.PaymentStatus</td>
+                            <td><span class="badge bg-warning text-dark">@deposit.Status</span></td>
+                            <td>
+                                <form method="post" asp-area="Staff" asp-controller="Deposits" asp-action="UpdateStatus" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@deposit.DepositId" />
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="WaitingConfirm" selected="@(deposit.Status == "WaitingConfirm")">WaitingConfirm</option>
+                                        <option value="Pending" selected="@(deposit.Status == "Pending")">Pending</option>
+                                        <option value="Confirmed" selected="@(deposit.Status == "Confirmed")">Confirmed</option>
+                                        <option value="Rejected" selected="@(deposit.Status == "Rejected")">Rejected</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

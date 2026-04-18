@@ -1,0 +1,151 @@
+@model CarSales.Web.ViewModels.CarDetailsViewModel
+
+@{
+    var car = Model.Car;
+    ViewData["Title"] = car.CarName;
+    var fallbackImage = "/uploads/img/car.png";
+    var mainImage = Model.GalleryImages.FirstOrDefault() ?? fallbackImage;
+}
+
+<section class="car-detail-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="car-detail-breadcrumb">
+            <ol>
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li><a asp-controller="Cars" asp-action="Index">Xe đang bán</a></li>
+                <li aria-current="page">@car.CarName</li>
+            </ol>
+        </nav>
+
+        <div class="car-detail-layout">
+            <div class="car-detail-main">
+                <h1 class="car-detail-title">@car.CarName</h1>
+
+                <div class="car-detail-gallery">
+                    <img src="@mainImage" alt="@car.CarName" class="car-detail-main-image" id="carMainImage" />
+
+                    @if (Model.GalleryImages.Count > 1)
+                    {
+                        <div class="car-detail-thumbs">
+                            @for (var i = 0; i < Model.GalleryImages.Count; i++)
+                            {
+                                var image = Model.GalleryImages[i];
+                                <button type="button" class="car-detail-thumb @(i == 0 ? "active" : string.Empty)" data-image="@image">
+                                    <img src="@image" alt="@($"Ảnh {i + 1} - {car.CarName}")" />
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="car-detail-specs">
+                    <h2>Thông số kỹ thuật</h2>
+                    <div class="car-detail-spec-grid">
+                        <div class="car-spec-item"><span>Hãng xe</span><strong>@(car.Brand?.BrandName ?? "-" )</strong></div>
+                        <div class="car-spec-item"><span>Loại xe</span><strong>@(car.CarType?.TypeName ?? "-")</strong></div>
+                        <div class="car-spec-item"><span>Năm sản xuất</span><strong>@car.Year</strong></div>
+                        <div class="car-spec-item"><span>Số km đã đi</span><strong>@(car.Mileage?.ToString("N0") ?? "-") km</strong></div>
+                        <div class="car-spec-item"><span>Nhiên liệu</span><strong>@(string.IsNullOrWhiteSpace(car.FuelType) ? "-" : car.FuelType)</strong></div>
+                        <div class="car-spec-item"><span>Hộp số</span><strong>@(string.IsNullOrWhiteSpace(car.Transmission) ? "-" : car.Transmission)</strong></div>
+                        <div class="car-spec-item"><span>Số chỗ ngồi</span><strong>@(car.Seats?.ToString() ?? "-")</strong></div>
+                        <div class="car-spec-item"><span>Màu xe</span><strong>@(string.IsNullOrWhiteSpace(car.Color) ? "-" : car.Color)</strong></div>
+                        <div class="car-spec-item"><span>Động cơ</span><strong>@(string.IsNullOrWhiteSpace(car.Engine) ? "-" : car.Engine)</strong></div>
+                        <div class="car-spec-item"><span>Xuất xứ</span><strong>@(string.IsNullOrWhiteSpace(car.Origin) ? "-" : car.Origin)</strong></div>
+                        <div class="car-spec-item"><span>Trạng thái</span><strong>@car.Status</strong></div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(car.Description))
+                    {
+                        <div class="car-detail-description">
+                            <h3>Mô tả</h3>
+                            <p>@car.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <aside class="car-detail-sidebar">
+                <div class="car-detail-price-box">
+                    <p class="label">Giá bán</p>
+                    <p class="price">@car.Price.ToString("N0") VNĐ</p>
+                    <div class="car-detail-action-row">
+                        <a asp-controller="Pages" asp-action="Details" asp-route-slug="contact" class="contact-btn">Liên hệ xem xe</a>
+                        @if (Model.IsLoggedIn)
+                        {
+                            <a asp-controller="Cars" asp-action="Buy" asp-route-id="@car.CarId" class="buy-btn">Đặt cọc / Mua</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="buy-btn">Đặt cọc / Mua</a>
+                        }
+                    </div>
+
+                    @if (Model.IsLoggedIn)
+                    {
+                        <form asp-controller="Cars" asp-action="ToggleFavorite" method="post" class="favorite-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@car.CarId" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                            <button type="submit" class="favorite-btn @(Model.IsFavorited ? "active" : string.Empty)">
+                                <span aria-hidden="true">★</span>
+                                @(Model.IsFavorited ? "Đã yêu thích" : "Yêu thích")
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="favorite-btn">
+                            <span aria-hidden="true">★</span> Yêu thích
+                        </a>
+                    }
+                </div>
+
+                <div class="car-detail-similar">
+                    <h3>Có thể bạn quan tâm</h3>
+
+                    @if (!Model.SimilarCars.Any())
+                    {
+                        <p class="cars-empty">Chưa có xe tương tự.</p>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.SimilarCars)
+                        {
+                            var thumb = string.IsNullOrWhiteSpace(item.Thumbnail) ? fallbackImage : item.Thumbnail;
+                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@item.CarId" class="similar-car-card">
+                                <img src="@thumb" alt="@item.CarName" />
+                                <div class="similar-car-info">
+                                    <p class="name">@item.CarName</p>
+                                    <p class="meta">@(item.Brand?.BrandName ?? "") · @item.Year</p>
+                                    <p class="price">@item.Price.ToString("N0") VNĐ</p>
+                                </div>
+                            </a>
+                        }
+                    }
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var mainImage = document.getElementById('carMainImage');
+            var thumbs = document.querySelectorAll('.car-detail-thumb');
+
+            thumbs.forEach(function (thumb) {
+                thumb.addEventListener('click', function () {
+                    var image = thumb.getAttribute('data-image');
+                    if (!image || !mainImage) {
+                        return;
+                    }
+
+                    mainImage.src = image;
+                    thumbs.forEach(function (x) { x.classList.remove('active'); });
+                    thumb.classList.add('active');
+                });
+            });
+        });
+    </script>
+}

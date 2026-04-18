@@ -1,0 +1,111 @@
+﻿@model CarSales.Web.Models.Car
+
+@{
+    ViewData["Title"] = "Thêm xe";
+}
+
+<h2>Thêm xe mới</h2>
+
+<form asp-area="Admin" asp-controller="CarsManagement" asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" style="color:red;"></div>
+
+    <div>
+        <label>Tên xe</label><br />
+        <input asp-for="CarName" />
+        <span asp-validation-for="CarName" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>Hãng</label><br />
+        <select asp-for="BrandId" asp-items="ViewBag.BrandId"></select>
+        <span asp-validation-for="BrandId" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>Loại xe</label><br />
+        <select asp-for="CarTypeId" asp-items="ViewBag.CarTypeId"></select>
+        <span asp-validation-for="CarTypeId" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>Giá</label><br />
+        <input asp-for="Price" />
+        <span asp-validation-for="Price" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>Năm</label><br />
+        <input asp-for="Year" />
+        <span asp-validation-for="Year" style="color:red;"></span>
+    </div>
+
+    <div>
+        <label>Số km</label><br />
+        <input asp-for="Mileage" />
+    </div>
+
+    <div>
+        <label>Nhiên liệu</label><br />
+        <input asp-for="FuelType" />
+    </div>
+
+    <div>
+        <label>Hộp số</label><br />
+        <input asp-for="Transmission" />
+    </div>
+
+    <div>
+        <label>Số chỗ</label><br />
+        <input asp-for="Seats" />
+    </div>
+
+    <div>
+        <label>Màu sắc</label><br />
+        <input asp-for="Color" />
+    </div>
+
+    <div>
+        <label>Động cơ</label><br />
+        <input asp-for="Engine" />
+    </div>
+
+    <div>
+        <label>Xuất xứ</label><br />
+        <input asp-for="Origin" />
+    </div>
+
+    <div>
+        <label>Mô tả</label><br />
+        <textarea asp-for="Description" rows="5" cols="50"></textarea>
+    </div>
+
+    <div>
+        <label>Trạng thái</label><br />
+        <select asp-for="Status">
+            <option value="Available">Available</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Sold">Sold</option>
+            <option value="Hidden">Hidden</option>
+        </select>
+    </div>
+
+    <div>
+        <label>Xe nổi bật</label>
+        <input asp-for="IsFeatured" />
+    </div>
+
+    <div>
+        <label>Ảnh đại diện</label><br />
+        <input type="file" name="upload" />
+    </div>
+
+    <br />
+    <button type="submit">Lưu</button>
+    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Quay lại</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    var recentCars = ViewBag.RecentCars as List<CarSales.Web.Models.Car> ?? new List<CarSales.Web.Models.Car>();
+    var recentUsers = ViewBag.RecentUsers as List<CarSales.Web.Models.User> ?? new List<CarSales.Web.Models.User>();
+}
+
+<section class="dashboard-page dashboard-admin-page">
+    <div class="container">
+        <div class="dashboard-head">
+            <h2>Dashboard Admin</h2>
+            <p>Tổng quan hệ thống và chức năng quản trị.</p>
+        </div>
+
+        <div class="dashboard-stats-grid">
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Tổng số xe</span>
+                <strong class="dashboard-stat-value">@ViewBag.TotalCars</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Người dùng</span>
+                <strong class="dashboard-stat-value">@ViewBag.TotalUsers</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Nhân viên</span>
+                <strong class="dashboard-stat-value">@ViewBag.TotalStaff</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Yêu cầu mua mới</span>
+                <strong class="dashboard-stat-value">@ViewBag.PendingRequests</strong>
+            </div>
+            <div class="dashboard-stat-card">
+                <span class="dashboard-stat-label">Đặt cọc chờ xử lý</span>
+                <strong class="dashboard-stat-value">@ViewBag.PendingDeposits</strong>
+            </div>
+        </div>
+
+        <div class="dashboard-actions mb-4">
+            <a class="dashboard-btn primary" asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Quản lý xe</a>
+            <a class="dashboard-btn" asp-area="Admin" asp-controller="UsersManagement" asp-action="Index">Quản lý người dùng</a>
+            <a class="dashboard-btn" asp-area="" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+            <a class="dashboard-btn danger" asp-area="" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+        </div>
+
+        <div class="dashboard-panels-grid">
+            <div class="dashboard-panel">
+                <div class="dashboard-panel-head">
+                    <h3>Xe mới cập nhật</h3>
+                    <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Index">Xem tất cả</a>
+                </div>
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Tên xe</th>
+                                <th>Hãng</th>
+                                <th>Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (recentCars.Any())
+                            {
+                                foreach (var car in recentCars)
+                                {
+                                    <tr>
+                                        <td>@car.CarName</td>
+                                        <td>@car.Brand?.BrandName</td>
+                                        <td>@car.Price.ToString("N0")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3">Chưa có dữ liệu xe.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="dashboard-panel">
+                <div class="dashboard-panel-head">
+                    <h3>Người dùng mới</h3>
+                    <a asp-area="Admin" asp-controller="UsersManagement" asp-action="Index">Xem tất cả</a>
+                </div>
+                <div class="dashboard-table-wrap">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Vai trò</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (recentUsers.Any())
+                            {
+                                foreach (var user in recentUsers)
+                                {
+                                    <tr>
+                                        <td>@user.FullName</td>
+                                        <td>@user.Email</td>
+                                        <td>@user.Role?.RoleName</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3">Chưa có dữ liệu người dùng.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
