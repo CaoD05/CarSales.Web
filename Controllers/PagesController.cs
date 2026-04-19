@@ -23,7 +23,7 @@ public class PagesController : Controller
     {
         ["online-deposit"] = CreatePage("online-deposit", "Đặt cọc trực tuyến", "Đặt cọc xe nhanh chóng", "Thực hiện giữ chỗ mẫu xe yêu thích và nhận tư vấn từ nhân viên kinh doanh trong thời gian sớm nhất.", "Xem xe đang có", "/Cars/Index", "Liên hệ tư vấn", DetailsUrl(ContactSlug)),
         ["available-cars"] = CreatePage("available-cars", "Kiểm tra xe có sẵn", "Kho xe sẵn sàng giao", "Cập nhật danh sách xe có sẵn tại showroom và xe có thể giao nhanh trong ngày.", "Xem danh sách xe", "/Cars/Index", "Yêu cầu báo giá", RequestAQuotePath),
-        ["build-and-price"] = CreatePage("build-and-price", "Lựa chọn mẫu xe và báo giá", "Cấu hình theo nhu cầu", "Tùy chọn dòng xe, phiên bản và trang bị để nhận báo giá phù hợp với ngân sách của bạn.", "Khám phá xe", "/Cars/Index", "Yêu cầu báo giá", DetailsUrl(ContactSlug)),
+        ["build-and-price"] = CreatePage("build-and-price", "Lựa chọn mẫu xe và báo giá", "Cấu hình theo nhu cầu", "Tùy chọn dòng xe, phiên bản và trang bị để nhận báo giá phù hợp với ngân sách của bạn.", "Khám phá xe", "/Cars/Index", "Yêu cầu báo giá", RequestAQuotePath),
         ["price-list"] = CreatePage("price-list", "Bảng giá", "Cập nhật mức giá mới nhất", "Tra cứu bảng giá tham khảo theo từng dòng xe và phiên bản đang phân phối.", "Xem xe", "/Cars/Index", "Yêu cầu báo giá", RequestAQuotePath),
         ["test-drive"] = CreatePage("test-drive", "Đăng ký lái thử", "Trải nghiệm thực tế trước khi mua", "Đặt lịch lái thử nhanh, chọn địa điểm và thời gian phù hợp cùng tư vấn chuyên sâu.", "Đăng ký ngay", "/Pages/Details/test-drive-booking", "Xem xe", "/Cars/Index"),
         ["request-a-quote"] = CreatePage("request-a-quote", "Yêu cầu báo giá", "Nhận báo giá theo nhu cầu", "Gửi yêu cầu để nhận tư vấn gói xe, ưu đãi và phương án tài chính phù hợp.", "Xem xe", "/Cars/Index", "Liên hệ tư vấn", DetailsUrl(ContactSlug)),
@@ -55,6 +55,11 @@ public class PagesController : Controller
     [HttpGet]
     public IActionResult Details(string slug)
     {
+        if (string.Equals(slug, "test-drive", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(nameof(Details), new { slug = "coming-soon" });
+        }
+
         if (string.Equals(slug, "request-a-quote", StringComparison.OrdinalIgnoreCase))
         {
             return RedirectToAction(nameof(RequestAQuote));
