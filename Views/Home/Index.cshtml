@@ -33,14 +33,22 @@
             {
                 var normalizedHeroTitle = NormalizeValue(heroItems[i].Title);
                 var normalizedHeroSubtitle = NormalizeValue(heroItems[i].Subtitle);
-                var heroCar = heroCars.FirstOrDefault(x =>
-                    (!string.IsNullOrWhiteSpace(x.CarName) && x.CarName.Contains(heroItems[i].Subtitle, StringComparison.OrdinalIgnoreCase)) ||
-                    (x.Brand != null && x.Brand.BrandName.Equals(heroItems[i].Title, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(x.CarName) && heroItems[i].Subtitle.Contains(x.CarName, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(x.CarName) &&
-                     (NormalizeValue(x.CarName).Contains(normalizedHeroSubtitle, StringComparison.Ordinal) ||
-                      normalizedHeroSubtitle.Contains(NormalizeValue(x.CarName), StringComparison.Ordinal))) ||
-                    (x.Brand != null && NormalizeValue(x.Brand.BrandName) == normalizedHeroTitle));
+                var heroCar =
+                    heroCars.FirstOrDefault(x =>
+                        !string.IsNullOrWhiteSpace(x.CarName) &&
+                        x.CarName.Contains(heroItems[i].Subtitle, StringComparison.OrdinalIgnoreCase))
+                    ?? heroCars.FirstOrDefault(x =>
+                        !string.IsNullOrWhiteSpace(x.CarName) &&
+                        (NormalizeValue(x.CarName).Contains(normalizedHeroSubtitle, StringComparison.Ordinal) ||
+                         normalizedHeroSubtitle.Contains(NormalizeValue(x.CarName), StringComparison.Ordinal)))
+                    ?? heroCars.FirstOrDefault(x =>
+                        x.Brand != null &&
+                        x.Brand.BrandName.Equals(heroItems[i].Title, StringComparison.OrdinalIgnoreCase) &&
+                        !string.IsNullOrWhiteSpace(x.CarName) &&
+                        x.CarName.Contains(heroItems[i].Subtitle, StringComparison.OrdinalIgnoreCase))
+                    ?? heroCars.FirstOrDefault(x =>
+                        x.Brand != null &&
+                        NormalizeValue(x.Brand.BrandName) == normalizedHeroTitle);
                 <div class="hero-slide @(i == 0 ? "is-active" : string.Empty)" data-hero-slide>
                     <video class="hero-video" autoplay muted loop playsinline preload="metadata">
                         <source src="@heroItems[i].Video" type="video/mp4" />

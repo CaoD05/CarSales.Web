@@ -771,7 +771,7 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     top: 0;
     width: 100%;
     z-index: 1000;
-    transition: background-color 0.35s ease, box-shadow 0.35s ease;
+    transition: background-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 .is-home .ford-style-header.dark-theme.ultra-thin {
@@ -782,7 +782,7 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     position: sticky;
 }
 
-.ford-style-header.dark-theme.ultra-thin.hero-at-top:not(.scrolled):not(.search-open) {
+.ford-style-header.dark-theme.ultra-thin.hero-at-top:not(.scrolled):not(.search-open):not(.menu-open) {
     background-color: transparent !important;
     box-shadow: none;
 }
@@ -809,13 +809,14 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     min-height: 45px;
+    transition: background-color 0.15s ease-out;
 }
 
 .ford-style-header.dark-theme.ultra-thin .navbar-collapse {
     background-color: transparent;
 }
 
-.ford-style-header.dark-theme.ultra-thin.hero-at-top:not(.scrolled):not(.search-open) .navbar {
+.ford-style-header.dark-theme.ultra-thin.hero-at-top:not(.scrolled):not(.search-open):not(.menu-open) .navbar {
     background-color: transparent !important;
 }
 
@@ -832,6 +833,13 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
 .ford-style-header.dark-theme.ultra-thin .navbar-collapse.show,
 .ford-style-header.dark-theme.ultra-thin .navbar-collapse.collapsing {
     background-color: var(--dark-bg) !important;
+}
+
+@media (min-width: 992px) {
+    .ford-style-header.dark-theme.ultra-thin .navbar-collapse.show,
+    .ford-style-header.dark-theme.ultra-thin .navbar-collapse.collapsing {
+        background-color: transparent !important;
+    }
 }
 
 .ford-style-header.dark-theme.ultra-thin.search-open .navbar {
@@ -969,7 +977,11 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     width: 100%;
     z-index: 999;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    transition: background-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    transition: none;
+}
+
+.ford-style-header.dark-theme.ultra-thin .search-bar-collapse.collapsing {
+    transition: none !important;
 }
 
 .ford-style-header.dark-theme.ultra-thin .products-bar-collapse {
@@ -1025,7 +1037,7 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
 
 .ford-style-header.dark-theme.ultra-thin .products-menu-preview {
     border-radius: 10px;
-    padding: 18px 22px;
+    padding: 18px 14px 18px 22px;
     background: #2a2a2a;
     min-height: 320px;
 }
@@ -1034,6 +1046,9 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     display: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px 16px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
 .ford-style-header.dark-theme.ultra-thin .products-preview-pane.is-active {
@@ -1042,21 +1057,54 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
 
 .ford-style-header.dark-theme.ultra-thin .products-car-item {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 8px 0;
+    min-width: 0;
+}
+
+.ford-style-header.dark-theme.ultra-thin .products-car-thumb {
+    width: 62px;
+    height: 42px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #3a3a3a;
+    flex-shrink: 0;
+}
+
+.ford-style-header.dark-theme.ultra-thin .products-car-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .ford-style-header.dark-theme.ultra-thin .products-car-name {
     color: #fff;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ford-style-header.dark-theme.ultra-thin .products-car-price {
     color: #a7a7a7;
     font-size: 14px;
+}
+
+.ford-style-header.dark-theme.ultra-thin .products-preview-pane::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ford-style-header.dark-theme.ultra-thin .products-preview-pane::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 999px;
+}
+
+.ford-style-header.dark-theme.ultra-thin .products-preview-pane::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 999px;
 }
 
 .ford-style-header.dark-theme.ultra-thin .products-empty {
@@ -1174,6 +1222,22 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     color: #2d3a57;
 }
 
+.content-highlights-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.content-highlight-item {
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    padding: 12px;
+    background: #fbfcff;
+    color: #344054;
+}
+
 .content-page-highlights li {
     margin-bottom: 8px;
 }
@@ -1189,6 +1253,16 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     border-radius: 12px;
     padding: 18px 16px;
     background: #fbfcff;
+    position: relative;
+}
+
+.content-block-index {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #98a2b3;
 }
 
 .content-block-title {
@@ -1246,9 +1320,45 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
     color: #0f2f7a;
 }
 
+.content-theme-online-deposit,
+.content-theme-available-cars,
+.content-theme-build-and-price,
+.content-theme-price-list {
+    background: #f4f6fb;
+}
+
+.content-theme-online-deposit .content-page-wrap,
+.content-theme-available-cars .content-page-wrap,
+.content-theme-build-and-price .content-page-wrap,
+.content-theme-price-list .content-page-wrap {
+    border-top: 1px solid #e4e7ec;
+}
+
+.content-theme-online-deposit .content-blocks-timeline .content-block-card {
+    border-left: 4px solid #d0d5dd;
+}
+
+.content-theme-available-cars .content-blocks-checklist {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.content-theme-build-and-price .content-blocks-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.content-theme-price-list .content-blocks-pricelist .content-block-card {
+    border: 1px dashed #d0d5dd;
+}
+
 @media (max-width: 991px) {
     .content-page-section {
         padding-top: 96px;
+    }
+
+    .content-highlights-grid,
+    .content-theme-available-cars .content-blocks-checklist,
+    .content-theme-build-and-price .content-blocks-steps {
+        grid-template-columns: 1fr;
     }
 
     .content-page-wrap {
@@ -1261,6 +1371,74 @@ footer { background: #111; color: #ccc; padding: 40px 0 20px; font-size: 14px; }
 
     .content-page-intro {
         font-size: 17px;
+    }
+}
+
+.account-profile-section {
+    min-height: 72vh;
+}
+
+.account-profile-wrap {
+    max-width: 980px;
+}
+
+.account-profile-head {
+    margin-bottom: 18px;
+}
+
+.account-profile-grid {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 16px;
+}
+
+.account-profile-summary,
+.account-profile-form-card {
+    border: 1px solid #e4e7ec;
+    border-radius: 14px;
+    background: #fbfcff;
+}
+
+.account-profile-summary {
+    padding: 16px;
+    text-align: center;
+}
+
+.account-profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e6edff;
+    margin-bottom: 10px;
+}
+
+.account-profile-summary h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: #0f2f7a;
+}
+
+.account-profile-summary p {
+    color: #667085;
+    margin: 0 0 14px;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.account-profile-form-card {
+    padding: 18px;
+}
+
+.account-profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 991px) {
+    .account-profile-grid {
+        grid-template-columns: 1fr;
     }
 }
 

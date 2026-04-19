@@ -9,5 +9,6 @@ namespace CarSales.Web.ViewModels
         public List<Car> SimilarCars { get; set; } = new();
         public bool IsFavorited { get; set; }
         public bool IsLoggedIn { get; set; }
+    public string CurrentUserRole { get; set; } = string.Empty;
     }
 }

@@ -1,0 +1,76 @@
+@model CarSales.Web.ViewModels.AccountProfileViewModel
+
+@{
+    ViewData["Title"] = "Tài khoản";
+    var avatar = string.IsNullOrWhiteSpace(Model.Avatar) ? "/uploads/img/car.png" : Model.Avatar;
+}
+
+<section class="content-page-section account-profile-section">
+    <div class="container">
+        <div class="content-page-wrap account-profile-wrap">
+            <div class="account-profile-head">
+                <p class="content-page-kicker">UTC CAR</p>
+                <h1 class="content-page-title">Tài khoản của bạn</h1>
+                <p class="content-page-description mb-0">Cập nhật thông tin cá nhân để UTC Car hỗ trợ bạn nhanh và chính xác hơn.</p>
+            </div>
+
+            <div class="account-profile-grid">
+                <aside class="account-profile-summary">
+                    <img src="@avatar" alt="@Model.FullName" class="account-profile-avatar" />
+                    <h2>@Model.FullName</h2>
+                    <p>@Model.Email</p>
+                    <a asp-controller="Cars" asp-action="MyTickets" class="content-page-btn secondary">Quản lý ticket</a>
+                </aside>
+
+                <div class="account-profile-form-card">
+                    <form asp-controller="Pages" asp-action="AccountProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label">Họ tên</label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email</label>
+                                <input asp-for="Email" class="form-control" readonly />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                                <input asp-for="Phone" class="form-control" placeholder="Ví dụ: 0900000000" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Avatar" class="form-label">Link ảnh đại diện</label>
+                                <input asp-for="Avatar" class="form-control" placeholder="https://..." />
+                                <span asp-validation-for="Avatar" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label">Địa chỉ</label>
+                                <input asp-for="Address" class="form-control" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="account-profile-actions mt-4">
+                            <button type="submit" class="content-page-btn primary">Lưu thay đổi</button>
+                            <a asp-controller="Home" asp-action="Index" class="content-page-btn secondary">Về trang chủ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

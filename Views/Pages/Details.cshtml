@@ -2,9 +2,26 @@
 
 @{
     ViewData["Title"] = Model.Title;
+    var themeClass = Model.Slug switch
+    {
+        "online-deposit" => "content-theme-online-deposit",
+        "available-cars" => "content-theme-available-cars",
+        "build-and-price" => "content-theme-build-and-price",
+        "price-list" => "content-theme-price-list",
+        _ => string.Empty
+    };
+
+    var blockLayoutClass = Model.Slug switch
+    {
+        "online-deposit" => "content-blocks-timeline",
+        "available-cars" => "content-blocks-checklist",
+        "build-and-price" => "content-blocks-steps",
+        "price-list" => "content-blocks-pricelist",
+        _ => string.Empty
+    };
 }
 
-<section class="content-page-section">
+<section class="content-page-section @themeClass">
     <div class="container">
         <div class="content-page-wrap">
             <p class="content-page-kicker">UTC CAR</p>
@@ -14,20 +31,22 @@
 
             @if (Model.Highlights.Any())
             {
-                <ul class="content-page-highlights">
+                <ul class="content-page-highlights content-highlights-grid">
                     @foreach (var item in Model.Highlights)
                     {
-                        <li>@item</li>
+                        <li class="content-highlight-item">@item</li>
                     }
                 </ul>
             }
 
             @if (Model.ContentBlocks.Any())
             {
-                <div class="content-page-blocks">
-                    @foreach (var block in Model.ContentBlocks)
+                <div class="content-page-blocks @blockLayoutClass">
+                    @for (var i = 0; i < Model.ContentBlocks.Count; i++)
                     {
+                        var block = Model.ContentBlocks[i];
                         <article class="content-block-card">
+                            <span class="content-block-index">@(i + 1)</span>
                             <h2 class="content-block-title">@block.Heading</h2>
                             <p class="content-block-description">@block.Description</p>
 
@@ -36,7 +55,33 @@
                                 <ul class="content-block-list">
                                     @foreach (var point in block.Items)
                                     {
-                                        <li>@point</li>
+                                        var separatorIndex = point.IndexOf(':');
+                                        var hasLink = false;
+                                        var linkLabel = string.Empty;
+                                        var linkUrl = string.Empty;
+
+                                        if (separatorIndex > 0)
+                                        {
+                                            var possibleUrl = point[(separatorIndex + 1)..].Trim();
+                                            if (Uri.TryCreate(possibleUrl, UriKind.Absolute, out var uri)
+                                                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                                            {
+                                                hasLink = true;
+                                                linkLabel = point[..separatorIndex].Trim();
+                                                linkUrl = possibleUrl;
+                                            }
+                                        }
+
+                                        <li>
+                                            @if (hasLink)
+                                            {
+                                                <span>@linkLabel: </span><a href="@linkUrl" target="_blank" rel="noopener noreferrer">@linkUrl</a>
+                                            }
+                                            else
+                                            {
+                                                @point
+                                            }
+                                        </li>
                                     }
                                 </ul>
                             }

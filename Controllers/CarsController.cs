@@ -80,6 +80,7 @@ namespace CarSales.Web.Controllers
         {
             int.TryParse(HttpContext.Session.GetString("UserId"), out var userId);
             var isLoggedIn = userId > 0;
+            var currentUserRole = HttpContext.Session.GetString("Role") ?? string.Empty;
 
             var car = _context.Cars
                 .Include(x => x.Brand)
@@ -124,7 +125,8 @@ namespace CarSales.Web.Controllers
                 GalleryImages = galleryImages,
                 SimilarCars = similarCars,
                 IsLoggedIn = isLoggedIn,
-                IsFavorited = isLoggedIn && _context.Favorites.Any(x => x.UserId == userId && x.CarId == id)
+                IsFavorited = isLoggedIn && _context.Favorites.Any(x => x.UserId == userId && x.CarId == id),
+                CurrentUserRole = currentUserRole
             };
 
             return View(vm);
