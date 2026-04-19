@@ -69,14 +69,25 @@
                     <p class="label">Giá bán</p>
                     <p class="price">@car.Price.ToString("N0") VNĐ</p>
                     <div class="car-detail-action-row">
-                        <a asp-controller="Pages" asp-action="Details" asp-route-slug="contact" class="contact-btn">Liên hệ xem xe</a>
-                        @if (Model.IsLoggedIn)
+                        @if (Model.CurrentUserRole == "Admin")
                         {
-                            <a asp-controller="Cars" asp-action="Buy" asp-route-id="@car.CarId" class="buy-btn">Đặt cọc / Mua</a>
+                            <a asp-area="Admin" asp-controller="CarsManagement" asp-action="Edit" asp-route-id="@car.CarId" class="buy-btn">Chỉnh sửa</a>
+                        }
+                        else if (Model.CurrentUserRole == "Staff")
+                        {
+                            <a asp-area="Staff" asp-controller="PurchaseRequests" asp-action="Index" class="buy-btn">Xem Yêu cầu mua</a>
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Login" class="buy-btn">Đặt cọc / Mua</a>
+                            <a asp-controller="Pages" asp-action="Details" asp-route-slug="contact" class="contact-btn">Liên hệ xem xe</a>
+                            @if (Model.IsLoggedIn)
+                            {
+                                <a asp-controller="Cars" asp-action="Buy" asp-route-id="@car.CarId" class="buy-btn">Đặt cọc / Mua</a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="buy-btn">Đặt cọc / Mua</a>
+                            }
                         }
                     </div>
 

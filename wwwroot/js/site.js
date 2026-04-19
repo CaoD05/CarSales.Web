@@ -10,14 +10,18 @@ function getCollapseInstance(element) {
 document.addEventListener('click', function (event) {
     const searchBar = document.querySelector('.search-bar-collapse');
     const searchInput = document.querySelector('.search-input');
-    const searchToggleButton = document.querySelector('.search-icon-btn');
+    const searchToggleButtons = Array.from(document.querySelectorAll('.search-icon-btn'));
     const productsBar = document.querySelector('.products-bar-collapse');
-    const productsToggleButton = document.querySelector('.product-menu-toggle');
+    const productsToggleButtons = Array.from(document.querySelectorAll('.product-menu-toggle'));
 
     const clickedInsideSearch = searchBar && searchBar.contains(event.target);
-    const clickedSearchToggle = searchToggleButton && searchToggleButton.contains(event.target);
+    const clickedSearchToggle = searchToggleButtons.some(function (button) {
+        return button.contains(event.target);
+    });
     const clickedInsideProducts = productsBar && productsBar.contains(event.target);
-    const clickedProductsToggle = productsToggleButton && productsToggleButton.contains(event.target);
+    const clickedProductsToggle = productsToggleButtons.some(function (button) {
+        return button.contains(event.target);
+    });
 
     if (searchBar && searchBar.classList.contains('show') && !clickedInsideSearch && !clickedSearchToggle) {
         getCollapseInstance(searchBar).hide();
@@ -93,16 +97,28 @@ document.addEventListener('DOMContentLoaded', function () {
         document.documentElement.classList.remove('is-home');
     }
 
-    const syncHeroTopState = function (isPanelOpening = null) {
+    const syncHeroTopState = function () {
         if (!header) {
             return;
         }
 
-        const isNavbarOpen = !!(navbarCollapse && (navbarCollapse.classList.contains('show') || navbarCollapse.classList.contains('collapsing')));
-        let anyPanelOpen = isPanelOpening !== null ? isPanelOpening : 
-            ((searchCollapse && searchCollapse.classList.contains('show')) ||
-             (productsCollapse && productsCollapse.classList.contains('show')) ||
-             isNavbarOpen);
+        const isDesktop = window.matchMedia('(min-width: 992px)').matches;
+        const isNavbarOpen = !isDesktop && !!(navbarCollapse && (navbarCollapse.classList.contains('show') || navbarCollapse.classList.contains('collapsing')));
+        const isSearchOpen = !!(searchCollapse && (searchCollapse.classList.contains('show') || searchCollapse.classList.contains('collapsing')));
+        const isProductsOpen = !!(productsCollapse && (productsCollapse.classList.contains('show') || productsCollapse.classList.contains('collapsing')));
+        const anyPanelOpen = isSearchOpen || isProductsOpen || isNavbarOpen;
+
+        if (window.scrollY > 20) {
+            header.classList.add('scrolled');
+            if (searchCollapse) {
+                searchCollapse.classList.add('scrolled');
+            }
+        } else {
+            header.classList.remove('scrolled');
+            if (searchCollapse) {
+                searchCollapse.classList.remove('scrolled');
+            }
+        }
 
         const shouldBeTransparent = hasHero && window.scrollY <= 20 && !anyPanelOpen;
 
@@ -113,24 +129,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (searchCollapse && searchInput) {
         searchCollapse.addEventListener('show.bs.collapse', function () {
+            if (header) {
+                header.classList.add('search-open');
+                header.classList.remove('hero-at-top');
+            }
+
             if (productsCollapse && productsCollapse.classList.contains('show')) {
                 getCollapseInstance(productsCollapse).hide();
             }
-
-            syncHeroTopState(true);
             searchInput.focus();
         });
         searchCollapse.addEventListener('shown.bs.collapse', function () {
+            syncHeroTopState();
             searchInput.focus();
         });
         searchCollapse.addEventListener('hide.bs.collapse', function () {
-            syncHeroTopState(false);
+            syncHeroTopState();
+        });
+        searchCollapse.addEventListener('hidden.bs.collapse', function () {
+            syncHeroTopState();
         });
     }
 
     if (navbarCollapse) {
         navbarCollapse.addEventListener('show.bs.collapse', function () {
-            syncHeroTopState();
+            if (header && !window.matchMedia('(min-width: 992px)').matches) {
+                header.classList.add('menu-open');
+                header.classList.add('search-open');
+                header.classList.remove('hero-at-top');
+            }
         });
 
         navbarCollapse.addEventListener('shown.bs.collapse', function () {
@@ -148,6 +175,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (productsCollapse) {
         productsCollapse.addEventListener('show.bs.collapse', function () {
+            if (header) {
+                header.classList.add('search-open');
+                header.classList.remove('hero-at-top');
+            }
+
             if (searchCollapse && searchCollapse.classList.contains('show')) {
                 getCollapseInstance(searchCollapse).hide();
                 if (searchInput) {
@@ -157,11 +189,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             setProductToggleState(true);
             setActiveProductType('all');
-            syncHeroTopState(true);
         });
         productsCollapse.addEventListener('hide.bs.collapse', function () {
             setProductToggleState(false);
-            syncHeroTopState(false);
+            syncHeroTopState();
+        });
+        productsCollapse.addEventListener('shown.bs.collapse', function () {
+            syncHeroTopState();
+        });
+        productsCollapse.addEventListener('hidden.bs.collapse', function () {
+            syncHeroTopState();
         });
     }
 
@@ -180,6 +217,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     syncHeroTopState();
+    window.addEventListener('scroll', syncHeroTopState, { passive: true });
+    window.addEventListener('resize', function () {
+        const isDesktop = window.matchMedia('(min-width: 992px)').matches;
+        if (isDesktop && navbarCollapse) {
+            navbarCollapse.classList.remove('show', 'collapsing');
+            navbarCollapse.style.height = '';
+
+            const toggler = document.querySelector('.navbar-toggler');
+            if (toggler) {
+                toggler.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        syncHeroTopState();
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -299,36 +351,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     showSlide(currentIndex);
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const header = document.querySelector('.ford-style-header.dark-theme.ultra-thin');
-    if (!header) {
-        return;
-    }
-
-    const searchBar = header.querySelector('.search-bar-collapse');
-    const hasHero = !!document.querySelector('.hero');
-
-    const toggleHeaderOnScroll = function () {
-        if (window.scrollY > 20) {
-            header.classList.add('scrolled');
-            if (searchBar) {
-                searchBar.classList.add('scrolled');
-            }
-        } else {
-            header.classList.remove('scrolled');
-            if (searchBar) {
-                searchBar.classList.remove('scrolled');
-            }
-        }
-
-        const shouldBeTransparent = hasHero && window.scrollY <= 20 && !header.classList.contains('search-open');
-        header.classList.toggle('hero-at-top', shouldBeTransparent);
-    };
-
-    toggleHeaderOnScroll();
-    window.addEventListener('scroll', toggleHeaderOnScroll, { passive: true });
 });
 
 // Initialize TinyMCE for all textareas with class 'rich-editor'

@@ -31,7 +31,7 @@
     var productCars = DbContext.Cars
         .Where(x => x.Status == "Available")
         .OrderBy(x => x.Price)
-        .Select(x => new { x.CarId, x.CarName, x.Price, x.CarTypeId })
+        .Select(x => new { x.CarId, x.CarName, x.Price, x.CarTypeId, x.Thumbnail })
         .ToList();
     var headerKeyword = Context.Request.Query["keyword"].ToString();
 }
@@ -83,7 +83,7 @@
                                 {
                                     <li><a class="dropdown-item" asp-controller="Cars" asp-action="MyTickets">Quản lý Đặt cọc</a></li>
                                     <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="account-profile">Tài khoản</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive-booking">Đăng ký lái thử</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Đăng ký lái thử</a></li>
                                 }
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
@@ -119,8 +119,8 @@
                                 <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="available-cars">Kiểm tra xe có sẵn</a></li>
                                 <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="build-and-price">Lựa chọn mẫu xe và báo giá</a></li>
                                 <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="price-list">Bảng giá</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="parts-and-accessories">Phụ kiện &amp; Phụ tùng</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive">Đăng ký lái thử xe</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Phụ kiện &amp; Phụ tùng</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Đăng ký lái thử xe</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown service-nav-item">
@@ -128,15 +128,14 @@
                                 DỊCH VỤ &amp; HỖ TRỢ
                             </a>
                             <ul class="dropdown-menu service-menu">
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="services">Dịch Vụ</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-booking">Đặt lịch Dịch vụ trực tuyến</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-estimate">Báo Giá Tạm tính Chi phí Dịch vụ</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="quick-maintenance-process">Quy trình bảo dưỡng nhanh</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="maintenance-schedule">Lịch bảo dưỡng định kỳ</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="service-centers">Cơ sở bảo hành bảo dưỡng</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="door-to-door-service">Nhận &amp; giao xe tận nơi miễn phí</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="extended-warranty-terms">Chứng nhận và Điều khoản hợp đồng bảo hành mở rộng</a></li>
-                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="owners">Chủ xe</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Dịch Vụ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Đặt lịch Dịch vụ trực tuyến</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Báo Giá Tạm tính Chi phí Dịch vụ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Quy trình bảo dưỡng nhanh</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Lịch bảo dưỡng định kỳ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Cơ sở bảo hành bảo dưỡng</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Nhận &amp; giao xe tận nơi miễn phí</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Chứng nhận và Điều khoản hợp đồng bảo hành mở rộng</a></li>
                                 <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="contact">Liên hệ</a></li>
                             </ul>
                         </li>
@@ -181,7 +180,7 @@
                                 {
                                     <li><a class="dropdown-item" asp-controller="Cars" asp-action="MyTickets">Quản lý Đặt cọc</a></li>
                                     <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="account-profile">Tài khoản</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="test-drive-booking">Đăng ký lái thử</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Pages" asp-action="Details" asp-route-slug="coming-soon">Đăng ký lái thử</a></li>
                                 }
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
@@ -214,11 +213,15 @@
                         <div class="products-preview-pane is-active" data-products-pane="all">
                             @if (productCars.Any())
                             {
-                                foreach (var car in productCars.Take(8))
+                                foreach (var car in productCars)
                                 {
+                                    var thumbnail = string.IsNullOrWhiteSpace(car.Thumbnail) ? "/uploads/img/car.png" : car.Thumbnail;
                                     <a class="products-car-item" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
-                                        <span class="products-car-name">@car.CarName</span>
-                                        <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                        <img class="products-car-thumb" src="@thumbnail" alt="@car.CarName" />
+                                        <span class="products-car-meta">
+                                            <span class="products-car-name">@car.CarName</span>
+                                            <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                        </span>
                                     </a>
                                 }
                             }
@@ -230,15 +233,19 @@
 
                         @foreach (var carType in productCarTypes)
                         {
-                            var typeCars = productCars.Where(x => x.CarTypeId == carType.CarTypeId).Take(8).ToList();
+                            var typeCars = productCars.Where(x => x.CarTypeId == carType.CarTypeId).ToList();
                             <div class="products-preview-pane" data-products-pane="@carType.CarTypeId">
                                 @if (typeCars.Any())
                                 {
                                     foreach (var car in typeCars)
                                     {
+                                        var thumbnail = string.IsNullOrWhiteSpace(car.Thumbnail) ? "/uploads/img/car.png" : car.Thumbnail;
                                         <a class="products-car-item" asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId">
-                                            <span class="products-car-name">@car.CarName</span>
-                                            <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                            <img class="products-car-thumb" src="@thumbnail" alt="@car.CarName" />
+                                            <span class="products-car-meta">
+                                                <span class="products-car-name">@car.CarName</span>
+                                                <span class="products-car-price">Giá từ @string.Format("{0:N0}", car.Price) VNĐ</span>
+                                            </span>
                                         </a>
                                     }
                                 }

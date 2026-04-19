@@ -1,46 +1,50 @@
+using CarSales.Web.Data;
 using CarSales.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSales.Web.Controllers;
 
 public class PagesController : Controller
 {
+    private const string ContactSlug = "contact";
+    private const string RequestAQuotePath = "/Pages/RequestAQuote";
+
+    private readonly ApplicationDbContext _context;
+
+    public PagesController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    private static string DetailsUrl(string slug) => $"/Pages/Details?slug={Uri.EscapeDataString(slug)}";
+
     private static readonly Dictionary<string, ContentPageViewModel> PageConfigs = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["online-deposit"] = CreatePage("online-deposit", "Đặt cọc trực tuyến", "Đặt cọc xe nhanh chóng", "Thực hiện giữ chỗ mẫu xe yêu thích và nhận tư vấn từ nhân viên kinh doanh trong thời gian sớm nhất.", "Xem xe đang có", "/Cars/Index", "Liên hệ tư vấn", "/Pages/Details/contact"),
-        ["available-cars"] = CreatePage("available-cars", "Kiểm tra xe có sẵn", "Kho xe sẵn sàng giao", "Cập nhật danh sách xe có sẵn tại showroom và xe có thể giao nhanh trong ngày.", "Xem danh sách xe", "/Cars/Index", "Yêu cầu báo giá", "/Pages/Details/request-a-quote"),
-        ["build-and-price"] = CreatePage("build-and-price", "Lựa chọn mẫu xe và báo giá", "Cấu hình theo nhu cầu", "Chọn phiên bản, màu sắc và trang bị phù hợp để nhận báo giá tối ưu theo ngân sách.", "Khám phá xe", "/Cars/Index", "Nhận báo giá", "/Pages/Details/request-a-quote"),
-        ["price-list"] = CreatePage("price-list", "Bảng giá", "Bảng giá tham khảo mới nhất", "Tra cứu giá bán theo từng dòng xe và phiên bản, cập nhật theo chương trình ưu đãi hiện hành.", "Xem mẫu xe", "/Cars/Index", "Liên hệ chi tiết", "/Pages/Details/contact"),
-        ["parts-and-accessories"] = CreatePage("parts-and-accessories", "Phụ kiện & Phụ tùng", "Danh mục chính hãng", "Tìm hiểu phụ kiện, phụ tùng và gói nâng cấp phù hợp cho xe của bạn.", "Đặt lịch dịch vụ", "/Pages/Details/service-booking", "Liên hệ bộ phận phụ tùng", "/Pages/Details/contact"),
+        ["online-deposit"] = CreatePage("online-deposit", "Đặt cọc trực tuyến", "Đặt cọc xe nhanh chóng", "Thực hiện giữ chỗ mẫu xe yêu thích và nhận tư vấn từ nhân viên kinh doanh trong thời gian sớm nhất.", "Xem xe đang có", "/Cars/Index", "Liên hệ tư vấn", DetailsUrl(ContactSlug)),
+        ["available-cars"] = CreatePage("available-cars", "Kiểm tra xe có sẵn", "Kho xe sẵn sàng giao", "Cập nhật danh sách xe có sẵn tại showroom và xe có thể giao nhanh trong ngày.", "Xem danh sách xe", "/Cars/Index", "Yêu cầu báo giá", RequestAQuotePath),
+        ["build-and-price"] = CreatePage("build-and-price", "Lựa chọn mẫu xe và báo giá", "Cấu hình theo nhu cầu", "Tùy chọn dòng xe, phiên bản và trang bị để nhận báo giá phù hợp với ngân sách của bạn.", "Khám phá xe", "/Cars/Index", "Yêu cầu báo giá", DetailsUrl(ContactSlug)),
+        ["price-list"] = CreatePage("price-list", "Bảng giá", "Cập nhật mức giá mới nhất", "Tra cứu bảng giá tham khảo theo từng dòng xe và phiên bản đang phân phối.", "Xem xe", "/Cars/Index", "Yêu cầu báo giá", RequestAQuotePath),
         ["test-drive"] = CreatePage("test-drive", "Đăng ký lái thử", "Trải nghiệm thực tế trước khi mua", "Đặt lịch lái thử nhanh, chọn địa điểm và thời gian phù hợp cùng tư vấn chuyên sâu.", "Đăng ký ngay", "/Pages/Details/test-drive-booking", "Xem xe", "/Cars/Index"),
-        ["request-a-quote"] = CreatePage("request-a-quote", "Yêu cầu báo giá", "Nhận báo giá theo nhu cầu", "Gửi yêu cầu để nhận tư vấn gói xe, ưu đãi và phương án tài chính phù hợp.", "Xem xe", "/Cars/Index", "Liên hệ tư vấn", "/Pages/Details/contact"),
-
-        ["services"] = CreatePage("services", "Dịch vụ", "Giải pháp chăm sóc toàn diện", "Cung cấp đầy đủ dịch vụ bảo dưỡng, sửa chữa và chăm sóc xe theo tiêu chuẩn kỹ thuật.", "Đặt lịch dịch vụ", "/Pages/Details/service-booking", "Tìm trung tâm", "/Pages/Details/service-centers"),
-        ["service-booking"] = CreatePage("service-booking", "Đặt lịch Dịch vụ trực tuyến", "Đặt lịch nhanh gọn", "Đăng ký thời gian bảo dưỡng hoặc kiểm tra xe trực tuyến để tiết kiệm thời gian chờ.", "Liên hệ ngay", "/Pages/Details/contact", "Xem quy trình", "/Pages/Details/quick-maintenance-process"),
-        ["service-estimate"] = CreatePage("service-estimate", "Báo Giá Tạm tính Chi phí Dịch vụ", "Ước tính chi phí minh bạch", "Nhận thông tin chi phí dự kiến theo hạng mục dịch vụ để chủ động kế hoạch tài chính.", "Đặt lịch dịch vụ", "/Pages/Details/service-booking", "Liên hệ cố vấn", "/Pages/Details/contact"),
-        ["quick-maintenance-process"] = CreatePage("quick-maintenance-process", "Quy trình bảo dưỡng nhanh", "Tiêu chuẩn rõ ràng", "Thực hiện kiểm tra, báo giá, bảo dưỡng và bàn giao theo quy trình tối ưu trải nghiệm khách hàng.", "Đặt lịch", "/Pages/Details/service-booking", "Lịch định kỳ", "/Pages/Details/maintenance-schedule"),
-        ["maintenance-schedule"] = CreatePage("maintenance-schedule", "Lịch bảo dưỡng định kỳ", "Chăm sóc xe đúng hạn", "Theo dõi mốc bảo dưỡng theo quãng đường để đảm bảo hiệu suất và độ bền xe.", "Đặt lịch ngay", "/Pages/Details/service-booking", "Liên hệ hỗ trợ", "/Pages/Details/contact"),
-        ["service-centers"] = CreatePage("service-centers", "Cơ sở bảo hành bảo dưỡng", "Mạng lưới trung tâm", "Tìm địa điểm bảo hành, bảo dưỡng gần nhất với đội ngũ kỹ thuật viên chuyên nghiệp.", "Liên hệ trung tâm", "/Pages/Details/contact", "Xem dịch vụ", "/Pages/Details/services"),
-        ["door-to-door-service"] = CreatePage("door-to-door-service", "Nhận & giao xe tận nơi miễn phí", "Tiện lợi và tiết kiệm thời gian", "Dịch vụ nhận và giao xe tận nơi, giúp bạn bảo dưỡng xe mà không ảnh hưởng lịch làm việc.", "Đặt lịch nhận xe", "/Pages/Details/service-booking", "Liên hệ hỗ trợ", "/Pages/Details/contact"),
-        ["extended-warranty-terms"] = CreatePage("extended-warranty-terms", "Chứng nhận và Điều khoản hợp đồng bảo hành mở rộng", "Bảo vệ xe dài hạn", "Nắm rõ phạm vi, điều kiện và quyền lợi của các gói bảo hành mở rộng.", "Xem chính sách bảo hành", "/Pages/Details/warranty-policy", "Liên hệ tư vấn", "/Pages/Details/contact"),
-        ["owners"] = CreatePage("owners", "Chủ xe", "Thông tin dành cho khách hàng sở hữu xe", "Tổng hợp tài liệu, dịch vụ và quyền lợi dành riêng cho chủ xe UTC Car.", "Dịch vụ bảo dưỡng", "/Pages/Details/services", "Liên hệ hỗ trợ", "/Pages/Details/contact"),
+        ["request-a-quote"] = CreatePage("request-a-quote", "Yêu cầu báo giá", "Nhận báo giá theo nhu cầu", "Gửi yêu cầu để nhận tư vấn gói xe, ưu đãi và phương án tài chính phù hợp.", "Xem xe", "/Cars/Index", "Liên hệ tư vấn", DetailsUrl(ContactSlug)),
+        ["coming-soon"] = CreatePage("coming-soon", "Sắp ra mắt", "Tính năng đang phát triển", "Tính năng này đang được hoàn thiện và sẽ sớm được cập nhật trong thời gian tới.", "Về trang chủ", "/", "Liên hệ", DetailsUrl(ContactSlug)),
         ["contact"] = CreatePage("contact", "Liên hệ", "Kết nối với UTC Car", "Liên hệ bộ phận kinh doanh và chăm sóc khách hàng để được hỗ trợ nhanh nhất.", "Xem xe", "/Cars/Index", "Về trang chủ", "/"),
 
-        ["payment-policy"] = CreatePage("payment-policy", "Chính sách thanh toán", "Phương thức linh hoạt", "Cập nhật phương thức thanh toán và các lưu ý giúp giao dịch nhanh chóng, minh bạch.", "Tư vấn mua xe", "/Pages/Details/contact", "Xem xe", "/Cars/Index"),
-        ["warranty-policy"] = CreatePage("warranty-policy", "Chính sách bảo hành", "Cam kết hậu mãi", "Thông tin chi tiết về phạm vi bảo hành và điều kiện áp dụng cho từng dòng xe.", "Liên hệ dịch vụ", "/Pages/Details/contact", "Đặt lịch dịch vụ", "/Pages/Details/service-booking"),
-        ["shipping-policy"] = CreatePage("shipping-policy", "Chính sách giao nhận vận chuyển", "Bàn giao an toàn", "Quy định giao nhận xe tại showroom hoặc giao tận nơi theo khu vực hỗ trợ.", "Liên hệ vận chuyển", "/Pages/Details/contact", "Xem xe", "/Cars/Index"),
-        ["privacy-policy"] = CreatePage("privacy-policy", "Chính sách bảo mật thông tin", "Bảo vệ dữ liệu khách hàng", "Cam kết lưu trữ và xử lý thông tin cá nhân theo nguyên tắc bảo mật và minh bạch.", "Xem điều khoản", "/Pages/Details/terms-and-conditions", "Liên hệ", "/Pages/Details/contact"),
-        ["terms-and-conditions"] = CreatePage("terms-and-conditions", "Điều kiện và điều khoản", "Quy định sử dụng dịch vụ", "Tổng hợp các điều khoản trong quá trình mua bán, sử dụng dịch vụ và bảo hành.", "Liên hệ hỗ trợ", "/Pages/Details/contact", "Về trang chủ", "/"),
-        ["security-and-i18n"] = CreatePage("security-and-i18n", "Bảo mật và quốc tế hóa", "An toàn và mở rộng", "Định hướng triển khai các biện pháp bảo mật và hỗ trợ đa ngôn ngữ cho hệ thống.", "Về trang chủ", "/", "Liên hệ", "/Pages/Details/contact"),
-        ["testing-and-quality"] = CreatePage("testing-and-quality", "Kiểm thử và chất lượng", "Đảm bảo tính ổn định", "Kế hoạch kiểm thử chức năng và tiêu chí nghiệm thu trước khi bàn giao sản phẩm.", "Về trang chủ", "/", "Liên hệ", "/Pages/Details/contact"),
+        ["payment-policy"] = CreatePage("payment-policy", "Chính sách thanh toán", "Phương thức linh hoạt", "Cập nhật phương thức thanh toán và các lưu ý giúp giao dịch nhanh chóng, minh bạch.", "Tư vấn mua xe", DetailsUrl(ContactSlug), "Xem xe", "/Cars/Index"),
+        ["warranty-policy"] = CreatePage("warranty-policy", "Chính sách bảo hành", "Cam kết hậu mãi", "Thông tin chi tiết về phạm vi bảo hành và điều kiện áp dụng cho từng dòng xe.", "Liên hệ dịch vụ", DetailsUrl(ContactSlug), "Đặt lịch dịch vụ", "/Pages/Details/coming-soon"),
+        ["shipping-policy"] = CreatePage("shipping-policy", "Chính sách giao nhận vận chuyển", "Bàn giao an toàn", "Quy định giao nhận xe tại showroom hoặc giao tận nơi theo khu vực hỗ trợ.", "Liên hệ vận chuyển", DetailsUrl(ContactSlug), "Xem xe", "/Cars/Index"),
+        ["privacy-policy"] = CreatePage("privacy-policy", "Chính sách bảo mật thông tin", "Bảo vệ dữ liệu khách hàng", "Cam kết lưu trữ và xử lý thông tin cá nhân theo nguyên tắc bảo mật và minh bạch.", "Xem điều khoản", "/Pages/Details/terms-and-conditions", "Liên hệ", DetailsUrl(ContactSlug)),
+        ["terms-and-conditions"] = CreatePage("terms-and-conditions", "Điều kiện và điều khoản", "Quy định sử dụng dịch vụ", "Tổng hợp các điều khoản trong quá trình mua bán, sử dụng dịch vụ và bảo hành.", "Liên hệ hỗ trợ", DetailsUrl(ContactSlug), "Về trang chủ", "/"),
+        ["security-and-i18n"] = CreatePage("security-and-i18n", "Bảo mật và quốc tế hóa", "An toàn và mở rộng", "Định hướng triển khai các biện pháp bảo mật và hỗ trợ đa ngôn ngữ cho hệ thống.", "Về trang chủ", "/", "Liên hệ", DetailsUrl(ContactSlug)),
+        ["testing-and-quality"] = CreatePage("testing-and-quality", "Kiểm thử và chất lượng", "Đảm bảo tính ổn định", "Kế hoạch kiểm thử chức năng và tiêu chí nghiệm thu trước khi bàn giao sản phẩm.", "Về trang chủ", "/", "Liên hệ", DetailsUrl(ContactSlug)),
 
-        ["custom-order"] = CreatePage("custom-order", "Đặt xe theo yêu cầu", "Cấu hình riêng cho bạn", "Hỗ trợ đặt xe theo phiên bản, màu sắc và trang bị theo nhu cầu cá nhân.", "Yêu cầu báo giá", "/Pages/Details/request-a-quote", "Xem xe", "/Cars/Index"),
-        ["consignment"] = CreatePage("consignment", "Ký gửi xe", "Giải pháp bán xe thuận tiện", "Hỗ trợ định giá, trưng bày và tìm kiếm khách mua phù hợp cho xe ký gửi.", "Liên hệ ký gửi", "/Pages/Details/contact", "Xem thị trường xe", "/Cars/Index"),
-        ["trade-in"] = CreatePage("trade-in", "Đổi xe", "Nâng cấp xe dễ dàng", "Đổi xe cũ lấy xe mới với quy trình thẩm định minh bạch và tư vấn phương án tài chính tối ưu.", "Tư vấn đổi xe", "/Pages/Details/contact", "Xem xe mới", "/Cars/Index"),
+        ["custom-order"] = CreatePage("custom-order", "Đặt xe theo yêu cầu", "Cấu hình riêng cho bạn", "Hỗ trợ đặt xe theo phiên bản, màu sắc và trang bị theo nhu cầu cá nhân.", "Yêu cầu báo giá", RequestAQuotePath, "Xem xe", "/Cars/Index"),
+        ["consignment"] = CreatePage("consignment", "Ký gửi xe", "Giải pháp bán xe thuận tiện", "Hỗ trợ định giá, trưng bày và tìm kiếm khách mua phù hợp cho xe ký gửi.", "Liên hệ ký gửi", DetailsUrl(ContactSlug), "Xem thị trường xe", "/Cars/Index"),
+        ["trade-in"] = CreatePage("trade-in", "Đổi xe", "Nâng cấp xe dễ dàng", "Đổi xe cũ lấy xe mới với quy trình thẩm định minh bạch và tư vấn phương án tài chính tối ưu.", "Tư vấn đổi xe", DetailsUrl(ContactSlug), "Xem xe mới", "/Cars/Index"),
 
-        ["deposit-management"] = CreatePage("deposit-management", "Quản lý đặt cọc", "Theo dõi trạng thái cọc", "Xem thông tin giao dịch đặt cọc và cập nhật tiến độ xử lý từ đội ngũ tư vấn.", "Xe đang mở bán", "/Cars/Index", "Liên hệ hỗ trợ", "/Pages/Details/contact"),
-        ["account-profile"] = CreatePage("account-profile", "Tài khoản", "Thông tin cá nhân", "Quản lý thông tin tài khoản, cập nhật liên hệ và lịch sử giao dịch của bạn.", "Về trang chủ", "/", "Liên hệ hỗ trợ", "/Pages/Details/contact"),
-        ["test-drive-booking"] = CreatePage("test-drive-booking", "Đăng ký lái thử", "Đặt lịch trải nghiệm", "Xác nhận thời gian lái thử và nhận hỗ trợ từ tư vấn viên UTC Car.", "Xem xe", "/Cars/Index", "Liên hệ", "/Pages/Details/contact")
+        ["deposit-management"] = CreatePage("deposit-management", "Quản lý đặt cọc", "Theo dõi trạng thái cọc", "Xem thông tin giao dịch đặt cọc và cập nhật tiến độ xử lý từ đội ngũ tư vấn.", "Xe đang mở bán", "/Cars/Index", "Liên hệ hỗ trợ", DetailsUrl(ContactSlug)),
+        ["account-profile"] = CreatePage("account-profile", "Tài khoản", "Thông tin cá nhân", "Quản lý thông tin tài khoản, cập nhật liên hệ và lịch sử giao dịch của bạn.", "Về trang chủ", "/", "Liên hệ hỗ trợ", DetailsUrl(ContactSlug)),
+        ["test-drive-booking"] = CreatePage("test-drive-booking", "Đăng ký lái thử", "Đặt lịch trải nghiệm", "Xác nhận thời gian lái thử và nhận hỗ trợ từ tư vấn viên UTC Car.", "Xem xe", "/Cars/Index", "Liên hệ", DetailsUrl(ContactSlug))
     };
 
     static PagesController()
@@ -51,12 +55,128 @@ public class PagesController : Controller
     [HttpGet]
     public IActionResult Details(string slug)
     {
+        if (string.Equals(slug, "request-a-quote", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(nameof(RequestAQuote));
+        }
+
+        if (string.Equals(slug, "account-profile", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(nameof(AccountProfile));
+        }
+
         if (string.IsNullOrWhiteSpace(slug) || !PageConfigs.TryGetValue(slug, out var page))
         {
             return NotFound();
         }
 
         return View(page);
+    }
+
+    [HttpGet]
+    public IActionResult RequestAQuote(int? carId)
+    {
+        var user = GetCurrentUser();
+        if (user == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var cars = _context.Cars
+            .Where(x => x.Status == "Available")
+            .OrderByDescending(x => x.IsFeatured)
+            .ThenBy(x => x.CarName)
+            .Select(x => new RequestAQuoteCarOptionViewModel
+            {
+                CarId = x.CarId,
+                CarName = x.CarName,
+                Price = x.Price,
+                Thumbnail = x.Thumbnail
+            })
+            .ToList();
+
+        var selectedCarId = carId.HasValue && cars.Any(x => x.CarId == carId.Value)
+            ? carId.Value
+            : cars.FirstOrDefault()?.CarId ?? 0;
+
+        var selectedCar = cars.FirstOrDefault(x => x.CarId == selectedCarId);
+
+        var hasOpenPurchaseRequest = selectedCarId > 0 && _context.PurchaseRequests.Any(x =>
+            x.UserId == user.UserId &&
+            x.CarId == selectedCarId &&
+            (x.Status == "New" || x.Status == "Processing"));
+
+        var vm = new RequestAQuotePageViewModel
+        {
+            Cars = cars,
+            SelectedCarId = selectedCarId,
+            SelectedCar = selectedCar,
+            HasOpenPurchaseRequest = hasOpenPurchaseRequest
+        };
+
+        return View(vm);
+    }
+
+    [HttpGet]
+    public IActionResult AccountProfile()
+    {
+        var user = GetCurrentUser();
+        if (user == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var vm = new AccountProfileViewModel
+        {
+            FullName = user.FullName,
+            Email = user.Email,
+            Phone = user.Phone,
+            Address = user.Address,
+            Avatar = user.Avatar
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AccountProfile(AccountProfileViewModel model)
+    {
+        var user = GetCurrentUser();
+        if (user == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        model.Email = user.Email;
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        user.FullName = model.FullName.Trim();
+        user.Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim();
+        user.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
+        user.Avatar = string.IsNullOrWhiteSpace(model.Avatar) ? null : model.Avatar.Trim();
+
+        _context.SaveChanges();
+
+        HttpContext.Session.SetString("FullName", user.FullName);
+
+        TempData["Success"] = "Cập nhật thông tin tài khoản thành công.";
+        return RedirectToAction(nameof(AccountProfile));
+    }
+
+    private Models.User? GetCurrentUser()
+    {
+        int.TryParse(HttpContext.Session.GetString("UserId"), out var userId);
+        if (userId <= 0)
+        {
+            return null;
+        }
+
+        return _context.Users.FirstOrDefault(x => x.UserId == userId && x.IsActive);
     }
 
     private static ContentPageViewModel CreatePage(
@@ -90,12 +210,239 @@ public class PagesController : Controller
 
     private static void ConfigureFooterPages()
     {
+        ConfigureContactPage();
+        ConfigureBuyPages();
         ConfigurePaymentPolicy();
         ConfigureWarrantyPolicy();
         ConfigureShippingPolicy();
         ConfigurePrivacyPolicy();
         ConfigureTermsAndConditions();
         ConfigureSecurityAndTestingPages();
+    }
+
+    private static void ConfigureBuyPages()
+    {
+        ConfigureOnlineDepositPage();
+        ConfigureAvailableCarsPage();
+        ConfigureBuildAndPricePage();
+        ConfigurePriceListPage();
+    }
+
+    private static void ConfigureOnlineDepositPage()
+    {
+        if (!PageConfigs.TryGetValue("online-deposit", out var page))
+        {
+            return;
+        }
+
+        page.Highlights =
+        [
+            "Giữ chỗ xe nhanh với quy trình trực tuyến đơn giản.",
+            "Xác nhận thông tin cọc và liên hệ trong thời gian sớm nhất.",
+            "Hỗ trợ tư vấn phương án thanh toán phù hợp."
+        ];
+
+        page.ContentBlocks =
+        [
+            new ContentBlockViewModel
+            {
+                Heading = "1. Quy trình đặt cọc",
+                Description = "Các bước cơ bản để hoàn tất yêu cầu đặt cọc online.",
+                Items =
+                [
+                    "Chọn mẫu xe và điền thông tin liên hệ.",
+                    "Xác nhận số tiền cọc theo tư vấn.",
+                    "Nhận thông báo xác nhận từ nhân viên kinh doanh."
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "2. Lưu ý khi đặt cọc",
+                Description = "Đảm bảo thông tin chính xác để xử lý nhanh hơn.",
+                Items =
+                [
+                    "Sử dụng số điện thoại và email đang hoạt động.",
+                    "Kiểm tra điều kiện hoàn/hủy cọc trước khi xác nhận.",
+                    "Liên hệ hotline nếu cần hỗ trợ khẩn."
+                ]
+            }
+        ];
+    }
+
+    private static void ConfigureAvailableCarsPage()
+    {
+        if (!PageConfigs.TryGetValue("available-cars", out var page))
+        {
+            return;
+        }
+
+        page.Highlights =
+        [
+            "Danh sách xe có sẵn được cập nhật thường xuyên.",
+            "Có thể giao nhanh với nhiều lựa chọn phiên bản.",
+            "Nhận tư vấn trực tiếp theo ngân sách và nhu cầu sử dụng."
+        ];
+
+        page.ContentBlocks =
+        [
+            new ContentBlockViewModel
+            {
+                Heading = "1. Xe sẵn giao",
+                Description = "Nguồn xe hiện có tại hệ thống showroom.",
+                Items =
+                [
+                    "Xe mới đủ phiên bản theo từng dòng.",
+                    "Một số mẫu có ưu đãi theo chương trình tháng.",
+                    "Kiểm tra tồn kho theo khu vực hỗ trợ."
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "2. Cách kiểm tra nhanh",
+                Description = "Chủ động nắm trạng thái xe trước khi đến showroom.",
+                Items =
+                [
+                    "Tra cứu danh sách xe trên mục Tìm xe.",
+                    "Gửi yêu cầu báo giá để giữ thông tin mẫu xe quan tâm.",
+                    "Liên hệ tư vấn để xác nhận lịch xem xe."
+                ]
+            }
+        ];
+    }
+
+    private static void ConfigureBuildAndPricePage()    
+    {
+        if (!PageConfigs.TryGetValue("build-and-price", out var page))
+        {
+            return;
+        }
+
+        page.Highlights =
+        [
+            "Tùy chọn phiên bản và trang bị theo nhu cầu cá nhân.",
+            "Ước tính chi phí dựa trên cấu hình xe thực tế.",
+            "Dễ dàng so sánh phương án trước khi ra quyết định."
+        ];
+
+        page.ContentBlocks =
+        [
+            new ContentBlockViewModel
+            {
+                Heading = "1. Tùy chọn cấu hình",
+                Description = "Xây dựng mẫu xe phù hợp phong cách và ngân sách.",
+                Items =
+                [
+                    "Chọn dòng xe, phiên bản và màu sắc.",
+                    "Thêm gói phụ kiện theo nhu cầu sử dụng.",
+                    "So sánh trang bị giữa các phiên bản."
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "2. Nhận báo giá",
+                Description = "Nhận bảng giá tạm tính dựa trên cấu hình đã chọn.",
+                Items =
+                [
+                    "Giá xe theo phiên bản và trang bị.",
+                    "Chi phí dự kiến cho phụ kiện đi kèm.",
+                    "Liên hệ tư vấn để chốt báo giá chi tiết."
+                ]
+            }
+        ];
+    }
+
+    private static void ConfigurePriceListPage()
+    {
+        if (!PageConfigs.TryGetValue("price-list", out var page))
+        {
+            return;
+        }
+
+        page.Highlights =
+        [
+            "Bảng giá tham khảo theo từng dòng xe đang bán.",
+            "Cập nhật theo chương trình ưu đãi theo thời điểm.",
+            "Hỗ trợ tư vấn chi phí lăn bánh theo khu vực."
+        ];
+
+        page.ContentBlocks =
+        [
+            new ContentBlockViewModel
+            {
+                Heading = "1. Giá niêm yết tham khảo",
+                Description = "Mức giá có thể thay đổi theo phiên bản và thời điểm.",
+                Items =
+                [
+                    "Giá theo dòng xe và cấu hình tiêu chuẩn.",
+                    "Chênh lệch theo màu ngoại thất và tùy chọn thêm.",
+                    "Liên hệ để nhận báo giá mới nhất."
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "2. Chi phí dự kiến khi nhận xe",
+                Description = "Một số chi phí thường gặp ngoài giá xe.",
+                Items =
+                [
+                    "Lệ phí trước bạ theo địa phương.",
+                    "Phí đăng ký biển số và đăng kiểm.",
+                    "Bảo hiểm và các khoản dịch vụ liên quan."
+                ]
+            }
+        ];
+    }
+
+    private static void ConfigureContactPage()
+    {
+        if (!PageConfigs.TryGetValue(ContactSlug, out var page))
+        {
+            return;
+        }
+
+        page.Highlights =
+        [
+            "Hotline luôn sẵn sàng hỗ trợ trong giờ hành chính.",
+            "Tư vấn mua xe, dịch vụ và hậu mãi theo nhu cầu thực tế.",
+            "Hỗ trợ đặt lịch làm việc nhanh qua hotline hoặc email."
+        ];
+
+        page.ContentBlocks =
+        [
+            new ContentBlockViewModel
+            {
+                Heading = "1. Thông tin liên hệ",
+                Description = "Kết nối trực tiếp với UTC Car qua các kênh chính thức.",
+                Items =
+                [
+                    "Hotline: 0000.000.000",
+                    "Email: info@utc-car.vn",
+                    "Địa chỉ: 3 Cầu Giấy, Ngọc Khánh, Láng, Hà Nội"
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "2. Thời gian hỗ trợ",
+                Description = "Đội ngũ tư vấn tiếp nhận yêu cầu và phản hồi nhanh.",
+                Items =
+                [
+                    "Thứ 2 - Thứ 7: 08:00 - 18:00",
+                    "Chủ nhật: 08:00 - 12:00",
+                    "Ngoài giờ: để lại thông tin, chúng tôi sẽ liên hệ sớm nhất"
+                ]
+            },
+            new ContentBlockViewModel
+            {
+                Heading = "3. Mạng xã hội",
+                Description = "Theo dõi UTC Car để cập nhật thông tin ưu đãi và sản phẩm mới.",
+                Items =
+                [
+                    "Facebook: https://www.facebook.com",
+                    "YouTube: https://www.youtube.com",
+                    "Instagram: https://www.instagram.com",
+                    "Zalo: https://zalo.me"
+                ]
+            }
+        ];
     }
 
     private static void ConfigureSecurityAndTestingPages()
